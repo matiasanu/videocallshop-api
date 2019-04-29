@@ -1,0 +1,33 @@
+{
+  "name": "videocallshop-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "engines": {
+    "node": "11.8.0",
+    "npm": "6.9.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": "https://github.com/garymartin87/videocallshop-api.git",
+  "author": "Gary <alemmartin@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^7.0.0",
+    "express": "^4.16.4",
+    "nodemon": "^1.18.11",
+    "passport": "^0.4.0",
+    "passport-facebook": "^3.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^1.17.0"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 4,
+    "semi": true,
+    "singleQuote": true,
+    "bracketSpacing": true
+  }
+}
