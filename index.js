@@ -5,28 +5,28 @@ const app = express();
 
 const { Client } = require('pg');
 
-const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: true,
-});
+config = {
+    ssl: process.env.PGSSL ? process.env.PGSSL : true,
+};
+
+const client = new Client(config);
 try {
     client.connect();
-} catch (e) {
-    console.log(e);
+} catch (err) {
+    throw err;
 }
 
-app.get('/', (req, res) => {
-    let results = client.query('select * from pruebita;', (err, res) => {
-        if (err) throw err;
-        for (let row of res.rows) {
-            console.log(JSON.stringify(row));
-        }
-        client.end();
-    });
-
-    console.log(results);
-
-    res.send(results);
+app.get('/', async (req, res) => {
+    try {
+        const { rows } = await client.query('select * from pruebita;');
+        console.log(rows);
+        res.send(rows);
+    } catch (err) {
+        const statusCode = 500;
+        const message = err.message ? err.message : 'An error has ocurred';
+        res.status(statusCode);
+        res.send({ status: statusCode, message: message });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
