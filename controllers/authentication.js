@@ -1,26 +1,24 @@
 const userModel = require('../models/user');
 
 authenticateUser = async (req, res, next) => {
-    console.log(
-        '-------- authentication CONTROLLER postAuthentication --------'
-    );
-
     const { email, password } = req.body;
-    userModel.getUserCredentials(email, password);
-    res.send({ email, password });
-
-    /*
     try {
+        const { rows } = await userModel.getUserCredentials(email, password);
 
-        await getUserCredentials(email, password);
+        if (!rows.length) {
+            const status = 401;
+            res.status(status);
+            res.send({ status: 401, message: 'Incorrect user or password.' });
 
-        res.sendStatus(201);
-        next();
-    } catch (e) {
-        console.log(e.message);
-        res.sendStatus(500) && next(error);
+            return;
+        }
+
+        res.status(200);
+        res.send(rows[0]);
+    } catch (err) {
+        res.status(401);
+        res.send(err.message);
     }
-    */
 };
 
 module.exports = {

@@ -20,19 +20,7 @@ const PORT = process.env.PORT || 3000;
 app.use(morgan('dev'));
 
 // routes
-app.get('/', async (req, res) => {
-    try {
-        const { rows } = await pool.query('select * from pruebita;');
-        console.log(rows);
-        res.send(rows);
-    } catch (err) {
-        const statusCode = 500;
-        const message = err.message ? err.message : 'An error has ocurred';
-        res.status(statusCode);
-        res.send({ status: statusCode, message: message });
-    }
-});
-
+app.get('/', ({ res }) => res.send('API available'));
 app.post('/authentication', authenticationCtrl.authenticateUser);
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
