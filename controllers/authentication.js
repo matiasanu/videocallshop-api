@@ -1,4 +1,5 @@
 const userModel = require('../models/user');
+const jwt = require('jsonwebtoken');
 
 authenticateUser = async (req, res, next) => {
     const { email, password } = req.body;
@@ -13,10 +14,17 @@ authenticateUser = async (req, res, next) => {
             return;
         }
 
+        // user credentials founded
+        let user = rows[0];
+        delete user.password;
+        let payload = { user };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET);
+        res.set('Authorization', 'Bearer ' + token);
         res.status(200);
-        res.send(rows[0]);
+        res.send(user);
     } catch (err) {
-        res.status(401);
+        res.status(500);
         res.send(err.message);
     }
 };
