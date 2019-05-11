@@ -3,6 +3,7 @@ require('dotenv').config();
 const pool = require('./db');
 var morgan = require('morgan');
 var bodyParser = require('body-parser');
+const checkJwtToken = require('./helpers/jwt');
 
 // controllers
 const authenticationCtrl = require('./controllers/authentication');
@@ -19,8 +20,15 @@ const PORT = process.env.PORT || 3000;
 
 app.use(morgan('dev'));
 
-// routes
+// public routes
 app.get('/', ({ res }) => res.send('API available'));
 app.post('/authentication', authenticationCtrl.authenticateUser);
+
+// private routes
+app.use(checkJwtToken);
+
+app.get('/private', ({ res }) =>
+    res.send({ status: 200, message: 'You are in' })
+);
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
