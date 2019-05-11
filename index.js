@@ -10,12 +10,7 @@ config = {
     connectionString: process.env.DATABASE_URL,
 };
 
-const client = new Client(config);
-try {
-    client.connect();
-} catch (err) {
-    throw err;
-}
+const PORT = process.env.PORT || 3000;
 
 app.get('/', async (req, res) => {
     try {
@@ -30,5 +25,14 @@ app.get('/', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
+const client = new Client(config);
+client
+    .connect()
+    .then(() => {
+        app.listen(PORT, () =>
+            console.log(`Example app listening on port ${PORT}!`)
+        );
+    })
+    .catch(err => {
+        console.log(err);
+    });
