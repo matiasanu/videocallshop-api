@@ -4,14 +4,15 @@ const pool = require('./db');
 var morgan = require('morgan');
 var bodyParser = require('body-parser');
 
+// controllers
+const authenticationCtrl = require('./controllers/authentication');
+
 // express
 const express = require('express');
 const app = express();
 
 // bodyParser
-app.use(bodyParser.json({ type: 'application/*+json' })); // parse various different custom JSON types as JSON
-app.use(bodyParser.raw({ type: 'application/vnd.custom-type' })); // parse some custom thing into a Buffer
-app.use(bodyParser.text({ type: 'text/html' })); // parse an HTML body into a string
+app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 
 // config
 const PORT = process.env.PORT || 3000;
@@ -31,5 +32,7 @@ app.get('/', async (req, res) => {
         res.send({ status: statusCode, message: message });
     }
 });
+
+app.post('/authentication', authenticationCtrl.authenticateUser);
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));

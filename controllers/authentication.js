@@ -1,12 +1,15 @@
-//const { userService } = require('../services/userService');
-//const { getUserCredentials } = userService;
+const userModel = require('../models/user');
 
-exports.postAuthentication = async (req, res, next) => {
+authenticateUser = async (req, res, next) => {
     console.log(
         '-------- authentication CONTROLLER postAuthentication --------'
     );
-    /*
+
     const { email, password } = req.body;
+    userModel.getUserCredentials(email, password);
+    res.send({ email, password });
+
+    /*
     try {
 
         await getUserCredentials(email, password);
@@ -18,4 +21,8 @@ exports.postAuthentication = async (req, res, next) => {
         res.sendStatus(500) && next(error);
     }
     */
+};
+
+module.exports = {
+    authenticateUser,
 };
