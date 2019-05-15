@@ -7,6 +7,7 @@ const checkJwtToken = require('./helpers/jwt');
 
 // controllers
 const authenticationCtrl = require('./controllers/authentication');
+const waitingRoomCtrl = require('./controllers/waitingRoom');
 
 // express
 const express = require('express');
@@ -23,6 +24,7 @@ app.use(morgan('dev'));
 // public routes
 app.get('/', ({ res }) => res.send('API available'));
 app.post('/authentication', authenticationCtrl.authenticateUser);
+app.post('/waiting-room', waitingRoomCtrl.addUser);
 
 // private routes
 app.use(checkJwtToken);
