@@ -32,8 +32,6 @@ addUser = async (req, res, next) => {
             })
             .catch(err => {
                 // connection fail
-
-                console.log('----- FIRST CATCH -------', err);
                 const status = 500;
                 res.status(status);
                 res.send({ status, message: err });
@@ -45,7 +43,7 @@ addUser = async (req, res, next) => {
             res.send({ status, message: msg });
         })
         .catch(err => {
-            console.log('----- SECOND CATCH -------');
+            // rejected queries
             const status = 500;
             res.status(status);
             res.send({ status, message: err });
