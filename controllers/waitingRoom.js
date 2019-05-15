@@ -8,8 +8,16 @@ addUser = async (req, res, next) => {
             .then(res => {
                 res
                     .multi()
+                    .lrange('waiting_room', 0, -1)
                     .lpush('waiting_room', id)
                     .execAsync()
+                    .then(waitingRoom => {
+                        waitingRoom[0].forEach(cli => {
+                            if (cli === id) {
+                                reject('Client already exists');
+                            }
+                        });
+                    })
                     .then(
                         res => {
                             resolve('User added');
@@ -24,10 +32,11 @@ addUser = async (req, res, next) => {
             })
             .catch(err => {
                 // connection fail
+
+                console.log('----- FIRST CATCH -------', err);
                 const status = 500;
                 res.status(status);
                 res.send({ status, message: err });
-                console.log('---------------------', err);
             });
     })
         .then(msg => {
@@ -36,6 +45,7 @@ addUser = async (req, res, next) => {
             res.send({ status, message: msg });
         })
         .catch(err => {
+            console.log('----- SECOND CATCH -------');
             const status = 500;
             res.status(status);
             res.send({ status, message: err });
