@@ -15,6 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^3.0.6",
+    "bluebird": "^3.5.4",
     "body-parser": "^1.19.0",
     "dotenv": "^7.0.0",
     "express": "^4.16.4",
@@ -23,7 +24,8 @@
     "nodemon": "^1.18.11",
     "passport": "^0.4.0",
     "passport-facebook": "^3.0.0",
-    "pg": "^7.10.0"
+    "pg": "^7.10.0",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "prettier": "^1.17.0"

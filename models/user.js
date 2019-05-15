@@ -1,4 +1,4 @@
-const pool = require('../db');
+const pool = require('../helpers/postgres');
 
 getUserByEmail = async email => {
     try {

@@ -21,7 +21,6 @@ authenticateUser = async (req, res, next) => {
         let user = rows[0];
 
         // check password
-        console.log(password, user.password);
         if (bcrypt.compareSync(password, user.password)) {
             delete user.password;
             let payload = { user };
