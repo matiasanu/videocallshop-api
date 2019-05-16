@@ -2,52 +2,36 @@ const client = require('../helpers/redis');
 
 addUser = async (req, res, next) => {
     const { name, id } = req.body;
+    try {
+        const redisCli = await client();
 
-    return new Promise((resolve, reject) => {
-        client()
-            .then(res => {
-                res
-                    .multi()
-                    .lrange('waiting_room', 0, -1)
-                    .lpush('waiting_room', id)
-                    .execAsync()
-                    .then(waitingRoom => {
-                        waitingRoom[0].forEach(cli => {
-                            if (cli === id) {
-                                reject('Client already exists');
-                            }
-                        });
-                    })
-                    .then(
-                        res => {
-                            resolve('User added');
-                        },
-                        err => {
-                            reject(err);
-                        }
-                    ),
-                    err => {
-                        reject('Redis connection failed: ' + err);
-                    };
-            })
-            .catch(err => {
-                // connection fail
-                const status = 500;
-                res.status(status);
-                res.send({ status, message: err });
-            });
-    })
-        .then(msg => {
-            const status = 200;
-            res.status(status);
-            res.send({ status, message: msg });
-        })
-        .catch(err => {
-            // rejected queries
-            const status = 500;
-            res.status(status);
-            res.send({ status, message: err });
+        const waitingRoom = await redisCli
+            .multi()
+            .lrange('waiting_room', 0, -1)
+            .execAsync();
+
+        // search if user already exists in waiting room queue
+        waitingRoom[0].forEach(client => {
+            if (client === id) {
+                throw new Error('Client already exists');
+            }
         });
+
+        let queueLength = await redisCli
+            .multi()
+            .lpush('waiting_room', id)
+            .execAsync();
+
+        queueLength = queueLength[0];
+        const status = 200;
+        res.status(status);
+        res.send({ status, message: 'User added', queueLength });
+    } catch (err) {
+        const status = 500;
+        console.log(err);
+        res.status(status);
+        res.send({ status, message: err.message ? err.message : err });
+    }
 };
 
 module.exports = {
