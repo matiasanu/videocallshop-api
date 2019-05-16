@@ -19,10 +19,13 @@ addUser = async (req, res, next) => {
 
         let queueLength = await redisCli
             .multi()
-            .lpush('waiting_room', id)
+            .rpush('waiting_room', id)
             .execAsync();
 
         queueLength = queueLength[0];
+
+        redisCli.publish('waitingRoom', id);
+
         const status = 200;
         res.status(status);
         res.send({ status, message: 'User added', queueLength });
