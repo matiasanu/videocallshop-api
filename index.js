@@ -12,12 +12,18 @@ const waitingRoomCtrl = require('./controllers/waitingRoom');
 // express
 const express = require('express');
 const app = express();
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () =>
+    console.log(`Example app listening on port ${PORT}!`)
+);
+const io = require('socket.io')(server);
+
+io.on('connection', function(socket) {
+    console.log('a user connected');
+});
 
 // bodyParser
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
-
-// config
-const PORT = process.env.PORT || 3000;
 
 app.use(morgan('dev'));
 
@@ -25,12 +31,13 @@ app.use(morgan('dev'));
 app.get('/', ({ res }) => res.send('API available'));
 app.post('/authentication', authenticationCtrl.authenticateUser);
 app.post('/waiting-room', waitingRoomCtrl.addUser);
+app.get('/waiting-room-render', function(req, res) {
+    res.sendFile(__dirname + '/waiting-room-render.html');
+});
 
 // private routes
-app.use(checkJwtToken);
+//app.use(checkJwtToken);
 
 app.get('/private', ({ res }) =>
     res.send({ status: 200, message: 'You are in' })
 );
-
-app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
