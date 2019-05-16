@@ -1,8 +1,8 @@
 // third libraries
 require('dotenv').config();
 const pool = require('./helpers/postgres');
-var morgan = require('morgan');
-var bodyParser = require('body-parser');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
 const checkJwtToken = require('./helpers/jwt');
 
 // controllers
