@@ -30,7 +30,11 @@ io.use(function(socket, next) {
 
         console.log(`Middleware: Trying to connect to storeId ${storeId}`);
 
-        if (parseInt(storeId) !== 1) {
+        if (
+            parseInt(storeId) !== 1 &&
+            parseInt(storeId) !== 2 &&
+            parseInt(storeId) !== 3
+        ) {
             console.log('The storeId number is not valid');
             return next(
                 new Error('Middleware: The storeId number is not valid')
@@ -71,6 +75,11 @@ client().then(res => {
                 socket.handshake.query.storeId
             }`
         );
+
+        socket.join(socket.handshake.query.storeId, () => {
+            let rooms = Object.keys(socket.rooms);
+            console.log(rooms); // [ <socket.id>, 'room 237' ]
+        });
 
         res.subscribe('waitingRoom');
 
