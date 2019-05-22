@@ -67,35 +67,35 @@ app.get('/waiting-room-render', function(req, res) {
     res.sendFile(__dirname + '/waiting-room-render.html');
 });
 
-client().then(res => {
+client().then(redisCli => {
     //socket.io
     io.on('connection', function(socket) {
-        console.log(
-            `User ${socket.handshake.query.userId} connected to ${
-                socket.handshake.query.storeId
-            }`
-        );
+        const userId = socket.handshake.query.userId;
+        const storeId = socket.handshake.query.storeId;
 
-        socket.join(socket.handshake.query.storeId, () => {
+        console.log(`User ${userId} connected to ${storeId}`);
+
+        // join the room
+        socket.join(storeId, () => {
             let rooms = Object.keys(socket.rooms);
             console.log(rooms); // [ <socket.id>, 'room 237' ]
         });
 
-        res.subscribe('waitingRoom');
+        // subscribe to redis events
+        redisCli.subscribe(`waitingRoom${storeId}`);
 
-        res.on('message', (channel, id) => {
+        socket.on('disconnect', function() {
+            console.log(`User ${userId} discconnected to ${storeId}`);
+        });
+
+        // old behavior
+        redisCli.subscribe('waitingRoom');
+
+        redisCli.on('message', (channel, id) => {
             console.log(channel);
             if (channel === 'waitingRoom') {
                 socket.emit('waitingRoom', id);
             }
-        });
-
-        socket.on('disconnect', function() {
-            console.log(
-                `User ${socket.handshake.query.userId} discconnected to ${
-                    socket.handshake.query.storeId
-                }`
-            );
         });
     });
 });
