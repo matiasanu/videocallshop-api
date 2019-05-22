@@ -18,7 +18,37 @@ const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () =>
     console.log(`Example app listening on port ${PORT}!`)
 );
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, {
+    path: '/waiting-room-socket',
+});
+
+// io middleware to check waiting room number
+io.use(function(socket, next) {
+    try {
+        var storeId = socket.request._query.storeId;
+        var userId = socket.request._query.userId;
+
+        console.log(`Middleware: Trying to connect to storeId ${storeId}`);
+
+        if (parseInt(storeId) !== 1) {
+            console.log('The storeId number is not valid');
+            return next(
+                new Error('Middleware: The storeId number is not valid')
+            );
+        }
+
+        if (userId.length < 3) {
+            console.log('The userId number is not valid');
+            return next(
+                new Error('Middleware: The userId number is not valid')
+            );
+        }
+
+        next();
+    } catch (err) {
+        return next(new Error(err));
+    }
+});
 
 // bodyParser
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
@@ -36,7 +66,11 @@ app.get('/waiting-room-render', function(req, res) {
 client().then(res => {
     //socket.io
     io.on('connection', function(socket) {
-        console.log('a user connected');
+        console.log(
+            `User ${socket.handshake.query.userId} connected to ${
+                socket.handshake.query.storeId
+            }`
+        );
 
         res.subscribe('waitingRoom');
 
@@ -48,7 +82,11 @@ client().then(res => {
         });
 
         socket.on('disconnect', function() {
-            console.log('user disconnected');
+            console.log(
+                `User ${socket.handshake.query.userId} discconnected to ${
+                    socket.handshake.query.storeId
+                }`
+            );
         });
     });
 });

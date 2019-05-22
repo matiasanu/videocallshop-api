@@ -19,11 +19,11 @@ let checkToken = (req, res, next) => {
     try {
         req.decoded = jwt.verify(token, process.env.JWT_SECRET);
         next();
-    } catch (ex) {
+    } catch (err) {
         const status = 401;
         res.status(status).send({
             status: status,
-            message: ex.message ? ex.message : 'Token is not valid',
+            message: err.message ? err.message : 'Token is not valid',
         });
     }
 };
