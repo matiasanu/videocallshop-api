@@ -14,11 +14,11 @@ const waitingRoomCtrl = require('./controllers/waitingRoom');
 // express & socket.io
 const express = require('express');
 const app = express();
+var http = require('http').Server(app);
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () =>
-    console.log(`Example app listening on port ${PORT}!`)
-);
-const io = require('socket.io')(server, {
+http.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
+
+const io = require('socket.io')(http, {
     path: '/waiting-room-socket',
 });
 
