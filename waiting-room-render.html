@@ -1,12 +1,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <script>
-    var storeId = 3;
-    var clientId = 9214555;
+    function getJsonFromUrl(url) {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    var params = getJsonFromUrl();
+
+    var storeId = params.storeId;
+    var clientId = params.clientId;
 
     var socket = io('http://localhost:3000?userId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
-    socket.on('waitingRoom', function(msg){
-        console.log('waitingRoom: ' + msg);
+    socket.on('waitingRoomChanged', function(msg){
+        console.log('waitingRoomChanged: ' + msg);
     });
 
     $( document ).ready(function() {

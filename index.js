@@ -90,19 +90,19 @@ client()
         io.on('connection', function(socket) {
             const userId = socket.handshake.query.userId;
             const storeId = socket.handshake.query.storeId;
-            const myChannel = `waitingRoom${storeId}`;
+            const myWaitingRoomId = `waitingRoom${storeId}`;
 
             console.log(`User ${userId} connected to ${storeId}`);
 
-            redisCli.on('message', (channel, id) => {
+            redisCli.on('message', async (channel, waitingRoom) => {
                 console.log(channel);
-                if (channel === myChannel) {
-                    socket.emit('waitingRoom', id);
+                if (channel === myWaitingRoomId) {
+                    socket.emit('waitingRoomChanged', waitingRoom);
                 }
             });
 
             // join to the socket.io room
-            socket.join(myChannel, () => {
+            socket.join(myWaitingRoomId, () => {
                 let rooms = Object.keys(socket.rooms);
                 console.log(rooms); // [ <socket.id>, 'room 237' ]
             });
