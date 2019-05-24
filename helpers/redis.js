@@ -13,7 +13,7 @@ let client = () => {
         let connector = redis.createClient(REDIS_URL);
 
         connector.on('error', () => {
-            reject('Redis Connection failed');
+            reject(new Error('Redis Connection failed'));
         });
 
         connector.on('connect', () => {
