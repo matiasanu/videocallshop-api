@@ -11,6 +11,12 @@ const checkJwtToken = require('./helpers/jwt');
 const authenticationCtrl = require('./controllers/authentication');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
 
+const stores = [
+    { storeId: 1, name: 'Sport 78' },
+    { storeId: 2, name: 'Blast' },
+    { storeId: 3, name: 'Mc Donals' },
+];
+
 // get a redis client
 client()
     .then(redisCli => {
@@ -23,7 +29,7 @@ client()
             path: '/waiting-room-socket',
         });
 
-        // io middleware to check waiting room number
+        // socket.io middleware to check the connection params
         io.use(function(socket, next) {
             try {
                 var storeId = socket.request._query.storeId;
@@ -33,11 +39,15 @@ client()
                     `Middleware: Trying to connect to storeId ${storeId}`
                 );
 
-                if (
-                    parseInt(storeId) !== 1 &&
-                    parseInt(storeId) !== 2 &&
-                    parseInt(storeId) !== 3
-                ) {
+                let storeFound = false;
+
+                stores.forEach(store => {
+                    if (store.storeId == storeId) {
+                        storeFound = true;
+                    }
+                });
+
+                if (!storeFound) {
                     console.log('The storeId number is not valid');
                     return next(
                         new Error('Middleware: The storeId number is not valid')
@@ -71,33 +81,34 @@ client()
         });
 
         //socket.io
+
+        // subscribe nodejs to redis channels
+        stores.forEach(store => {
+            redisCli.subscribe(`waitingRoom${store.storeId}`);
+        });
+
         io.on('connection', function(socket) {
             const userId = socket.handshake.query.userId;
             const storeId = socket.handshake.query.storeId;
+            const myChannel = `waitingRoom${storeId}`;
 
             console.log(`User ${userId} connected to ${storeId}`);
 
-            // join the room
-            socket.join(storeId, () => {
+            redisCli.on('message', (channel, id) => {
+                console.log(channel);
+                if (channel === myChannel) {
+                    socket.emit('waitingRoom', id);
+                }
+            });
+
+            // join to the socket.io room
+            socket.join(myChannel, () => {
                 let rooms = Object.keys(socket.rooms);
                 console.log(rooms); // [ <socket.id>, 'room 237' ]
             });
 
-            // subscribe to redis events
-            redisCli.subscribe(`waitingRoom${storeId}`);
-
             socket.on('disconnect', function() {
                 console.log(`User ${userId} discconnected to ${storeId}`);
-            });
-
-            // old behavior
-            redisCli.subscribe('waitingRoom');
-
-            redisCli.on('message', (channel, id) => {
-                console.log(channel);
-                if (channel === 'waitingRoom') {
-                    socket.emit('waitingRoom', id);
-                }
             });
         });
 

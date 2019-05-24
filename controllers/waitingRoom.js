@@ -1,30 +1,31 @@
 const client = require('../helpers/redis');
 
 addUser = async (req, res, next) => {
-    const { name, id } = req.body;
+    const { name, clientId, storeId } = req.body;
     try {
         const redisCli = await client();
+        const myChannel = `waitingRoom${storeId}`;
 
         const waitingRoom = await redisCli
             .multi()
-            .lrange('waiting_room', 0, -1)
+            .lrange(myChannel, 0, -1)
             .execAsync();
 
         // search if user already exists in waiting room queue
-        waitingRoom[0].forEach(client => {
-            if (client === id) {
+        waitingRoom[0].forEach(clientIdOnWaitingRoom => {
+            if (clientIdOnWaitingRoom === clientId) {
                 throw new Error('Client already exists');
             }
         });
 
         let queueLength = await redisCli
             .multi()
-            .rpush('waiting_room', id)
+            .rpush(myChannel, clientId)
             .execAsync();
 
         queueLength = queueLength[0];
 
-        redisCli.publish('waitingRoom', id);
+        redisCli.publish(myChannel, clientId);
 
         const status = 200;
         res.status(status);
