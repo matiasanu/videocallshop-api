@@ -17,9 +17,11 @@
     var storeId = params.storeId;
     var clientId = params.clientId;
 
-    var socket = io('http://localhost:3000?userId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
-    socket.on('waitingRoomChanged', function(msg){
-        console.log('waitingRoomChanged: ' + msg);
+    var socket = io('http://localhost:3000?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
+
+    socket.on('waitingRoomChanged', function(waitingRoom){
+        console.log('waitingRoomChanged: ' + waitingRoom);
+        $("#waitingRoom").html(waitingRoom);
     });
 
     $( document ).ready(function() {
@@ -30,7 +32,7 @@
 </script>
 <html>
     <body>
-        <h1>Sala de espera <span id="storeId"></span></h1>
-        <h2>DNI: <span id="clientId"></span></h2>
+        <h1>Sala de espera <span id="storeId"></span> - DNI: <span id="clientId"></span></h1>
+        <p><span id="waitingRoom"></span></p>
     </body>
 </html>

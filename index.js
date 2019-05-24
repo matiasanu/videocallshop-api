@@ -3,13 +3,13 @@ require('dotenv').config();
 const pool = require('./helpers/postgres');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+
+// heplers, controllers & models
 const client = require('./helpers/redis');
-
 const checkJwtToken = require('./helpers/jwt');
-
-// controllers
 const authenticationCtrl = require('./controllers/authentication');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
+const waitingRoomModel = require('./models/waitingRoom');
 
 const stores = [
     { storeId: 1, name: 'Sport 78' },
@@ -33,10 +33,10 @@ client()
         io.use(function(socket, next) {
             try {
                 var storeId = socket.request._query.storeId;
-                var userId = socket.request._query.userId;
+                var clientId = socket.request._query.clientId;
 
                 console.log(
-                    `Middleware: Trying to connect to storeId ${storeId}`
+                    `Middleware: Trying to connect clientId ${clientId} to storeId ${storeId}`
                 );
 
                 let storeFound = false;
@@ -54,10 +54,12 @@ client()
                     );
                 }
 
-                if (userId.length < 3) {
-                    console.log('The userId number is not valid');
+                if (clientId.length < 3) {
+                    console.log('The clientId number is not valid');
                     return next(
-                        new Error('Middleware: The userId number is not valid')
+                        new Error(
+                            'Middleware: The clientId number is not valid'
+                        )
                     );
                 }
 
@@ -88,11 +90,11 @@ client()
         });
 
         io.on('connection', function(socket) {
-            const userId = socket.handshake.query.userId;
+            const clientId = socket.handshake.query.clientId;
             const storeId = socket.handshake.query.storeId;
             const myWaitingRoomId = `waitingRoom${storeId}`;
 
-            console.log(`User ${userId} connected to ${storeId}`);
+            console.log(`User ${clientId} connected to ${storeId}`);
 
             redisCli.on('message', async (channel, waitingRoom) => {
                 console.log(channel);
@@ -107,8 +109,19 @@ client()
                 console.log(rooms); // [ <socket.id>, 'room 237' ]
             });
 
+            try {
+                console.log('clientId', clientId);
+                console.log('storeId', storeId);
+                waitingRoomModel.pushClient(clientId, storeId).catch(err => {
+                    console.log('--------------------------------------------');
+                    console.log(err);
+                });
+            } catch (err) {
+                console.log(err.message);
+            }
+
             socket.on('disconnect', function() {
-                console.log(`User ${userId} discconnected to ${storeId}`);
+                console.log(`User ${clientId} discconnected to ${storeId}`);
             });
         });
 
