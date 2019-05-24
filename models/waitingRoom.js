@@ -36,6 +36,36 @@ const pushClient = async (clientId, storeId) => {
     }
 };
 
+const removeClient = async (clientId, storeId) => {
+    try {
+        const redisCli = await client();
+        const myWaitingRoomId = `waitingRoom${storeId}`;
+
+        let clientsAffected = await redisCli
+            .multi()
+            .lrem(myWaitingRoomId, 0, clientId)
+            .execAsync();
+
+        if (clientsAffected === 0) {
+            throw new Error('Client doesnt exist');
+        }
+
+        let waitingRoom = await redisCli
+            .multi()
+            .lrange(myWaitingRoomId, 0, -1)
+            .execAsync();
+
+        waitingRoom = waitingRoom[0];
+
+        redisCli.publish(myWaitingRoomId, waitingRoom.toString());
+
+        return waitingRoom;
+    } catch (err) {
+        throw err;
+    }
+};
+
 module.exports = {
     pushClient,
+    removeClient,
 };

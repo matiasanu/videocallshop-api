@@ -122,6 +122,10 @@ client()
 
             socket.on('disconnect', function() {
                 console.log(`User ${clientId} discconnected to ${storeId}`);
+                waitingRoomModel.removeClient(clientId, storeId).catch(err => {
+                    console.log('--------------------------------------------');
+                    console.log(err);
+                });
             });
         });
 
