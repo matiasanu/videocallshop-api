@@ -1,6 +1,6 @@
 const pool = require('../helpers/postgres');
 
-getUserByEmail = async email => {
+const getUserByEmail = async email => {
     try {
         return await pool.query(
             `SELECT * FROM users WHERE email='${email}' LIMIT 1;`
