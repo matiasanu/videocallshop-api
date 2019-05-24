@@ -89,7 +89,7 @@ client()
             redisCli.subscribe(`waitingRoom${store.storeId}`);
         });
 
-        io.on('connection', function(socket) {
+        io.on('connection', socket => {
             const clientId = socket.handshake.query.clientId;
             const storeId = socket.handshake.query.storeId;
             const myWaitingRoomId = `waitingRoom${storeId}`;
@@ -113,7 +113,6 @@ client()
                 console.log('clientId', clientId);
                 console.log('storeId', storeId);
                 waitingRoomModel.pushClient(clientId, storeId).catch(err => {
-                    console.log('--------------------------------------------');
                     console.log(err);
                 });
             } catch (err) {
@@ -123,7 +122,6 @@ client()
             socket.on('disconnect', function() {
                 console.log(`User ${clientId} discconnected to ${storeId}`);
                 waitingRoomModel.removeClient(clientId, storeId).catch(err => {
-                    console.log('--------------------------------------------');
                     console.log(err);
                 });
             });
