@@ -1,16 +1,57 @@
 const waitingRoomModel = require('../models/waitingRoom');
 
-addUser = async (req, res, next) => {
+pushClient = async (req, res, next) => {
     const { name, clientId, storeId } = req.body;
     try {
-        const waitingRoom = await waitingRoomModel.pushClient(
+        const clientsAffected = await waitingRoomModel.pushClient(
             clientId,
             storeId
         );
 
         const status = 200;
+        const message = clientsAffected
+            ? 'User Added'
+            : 'User already in waiting room';
         res.status(status);
-        res.send({ status, message: 'User added', waitingRoom });
+        res.send({ status, message });
+    } catch (err) {
+        const status = 500;
+        console.log(err);
+        res.status(status);
+        res.send({ status, message: err.message ? err.message : err });
+    }
+};
+
+removeClient = async (req, res, next) => {
+    const { clientId, storeId } = req.params;
+    try {
+        const clientsAffected = await waitingRoomModel.removeClient(
+            clientId,
+            storeId
+        );
+
+        const status = clientsAffected ? 200 : 404;
+        const message = clientsAffected
+            ? 'User Removed'
+            : 'User not found in a waiting room';
+        res.status(status);
+        res.send({ status, message });
+    } catch (err) {
+        const status = 500;
+        console.log(err);
+        res.status(status);
+        res.send({ status, message: err.message ? err.message : err });
+    }
+};
+
+getWaitingRoom = async (req, res, next) => {
+    const { storeId } = req.params;
+    try {
+        const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+
+        const status = 200;
+        res.status(status);
+        res.send({ status, waitingRoom });
     } catch (err) {
         const status = 500;
         console.log(err);
@@ -20,5 +61,7 @@ addUser = async (req, res, next) => {
 };
 
 module.exports = {
-    addUser,
+    pushClient,
+    removeClient,
+    getWaitingRoom,
 };

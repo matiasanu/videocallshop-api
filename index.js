@@ -18,6 +18,7 @@ const stores = [
 ];
 
 // get a redis client
+// TODO use just one redis client
 client()
     .then(redisCli => {
         // express & socket.io
@@ -75,9 +76,19 @@ client()
         app.use(morgan('dev'));
 
         // public routes
-        app.get('/', ({ res }) => res.send('API available'));
+        app.get('/', ({ res }) => res.send('videocallshop-api available'));
+
+        app.use(express.static('public'));
+
         app.post('/authentication', authenticationCtrl.authenticateUser);
-        app.post('/waiting-room', waitingRoomCtrl.addUser);
+
+        app.get('/waiting-room/:storeId', waitingRoomCtrl.getWaitingRoom);
+        app.post('/waiting-room', waitingRoomCtrl.pushClient);
+        app.delete(
+            '/waiting-room/:storeId/:clientId',
+            waitingRoomCtrl.removeClient
+        );
+
         app.get('/waiting-room-render', function(req, res) {
             res.sendFile(__dirname + '/waiting-room-render.html');
         });
@@ -89,41 +100,34 @@ client()
             redisCli.subscribe(`waitingRoom${store.storeId}`);
         });
 
-        io.on('connection', socket => {
+        redisCli.on('message', async (channel, message) => {
+            message = JSON.parse(message);
+
+            // assuming channel (redis) and room (socket.io) sharing the same name
+            io.of('/')
+                .to(channel)
+                .emit(message.type, message.value);
+        });
+
+        io.on('connection', async socket => {
             const clientId = socket.handshake.query.clientId;
             const storeId = socket.handshake.query.storeId;
             const myWaitingRoomId = `waitingRoom${storeId}`;
 
             console.log(`User ${clientId} connected to ${storeId}`);
 
-            redisCli.on('message', async (channel, waitingRoom) => {
-                console.log(channel);
-                if (channel === myWaitingRoomId) {
-                    socket.emit('waitingRoomChanged', waitingRoom);
-                }
-            });
-
-            // join to the socket.io room
+            // join to the socket.io room in order to listen when waiting room was changed
             socket.join(myWaitingRoomId, () => {
                 let rooms = Object.keys(socket.rooms);
                 console.log(rooms); // [ <socket.id>, 'room 237' ]
             });
 
-            try {
-                console.log('clientId', clientId);
-                console.log('storeId', storeId);
-                waitingRoomModel.pushClient(clientId, storeId).catch(err => {
-                    console.log(err);
-                });
-            } catch (err) {
-                console.log(err.message);
-            }
+            const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+
+            socket.emit('WAITING_ROOM_SENDED', waitingRoom);
 
             socket.on('disconnect', function() {
                 console.log(`User ${clientId} discconnected to ${storeId}`);
-                waitingRoomModel.removeClient(clientId, storeId).catch(err => {
-                    console.log(err);
-                });
             });
         });
 

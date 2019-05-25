@@ -4,33 +4,14 @@ const pushClient = async (clientId, storeId) => {
     try {
         const redisCli = await client();
         const myWaitingRoomId = `waitingRoom${storeId}`;
+        const score = 0;
 
-        let waitingRoom = await redisCli
+        const membersAffected = await redisCli
             .multi()
-            .lrange(myWaitingRoomId, 0, -1)
+            .zadd(myWaitingRoomId, score, clientId)
             .execAsync();
 
-        waitingRoom = waitingRoom[0];
-
-        // search if user already exists in waiting room queue
-        waitingRoom.forEach(clientIdOnWaitingRoom => {
-            if (clientIdOnWaitingRoom === clientId) {
-                throw new Error('Client already exists');
-            }
-        });
-
-        let queueLength = await redisCli
-            .multi()
-            .rpush(myWaitingRoomId, clientId)
-            .execAsync();
-
-        queueLength = queueLength[0];
-
-        waitingRoom.push(clientId);
-
-        redisCli.publish(myWaitingRoomId, waitingRoom.toString());
-
-        return waitingRoom;
+        return membersAffected[0];
     } catch (err) {
         throw err;
     }
@@ -41,25 +22,28 @@ const removeClient = async (clientId, storeId) => {
         const redisCli = await client();
         const myWaitingRoomId = `waitingRoom${storeId}`;
 
-        let clientsAffected = await redisCli
+        const membersAffected = await redisCli
             .multi()
-            .lrem(myWaitingRoomId, 0, clientId)
+            .zrem(myWaitingRoomId, clientId)
             .execAsync();
 
-        if (clientsAffected === 0) {
-            throw new Error('Client doesnt exist');
-        }
+        return membersAffected[0];
+    } catch (err) {
+        throw err;
+    }
+};
 
-        let waitingRoom = await redisCli
+const getWaitingRoom = async storeId => {
+    try {
+        const redisCli = await client();
+        const myWaitingRoomId = `waitingRoom${storeId}`;
+
+        const waitingRoom = await redisCli
             .multi()
-            .lrange(myWaitingRoomId, 0, -1)
+            .zrange(myWaitingRoomId, 0, -1)
             .execAsync();
 
-        waitingRoom = waitingRoom[0];
-
-        redisCli.publish(myWaitingRoomId, waitingRoom.toString());
-
-        return waitingRoom;
+        return waitingRoom[0];
     } catch (err) {
         throw err;
     }
@@ -68,4 +52,5 @@ const removeClient = async (clientId, storeId) => {
 module.exports = {
     pushClient,
     removeClient,
+    getWaitingRoom,
 };
