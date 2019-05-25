@@ -10,6 +10,7 @@ pushClient = async (req, res, next) => {
         );
 
         if (clientsAffected) {
+            //TODO move this repeated function
             const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
             const redisCli = await client();
             const message = {
@@ -42,6 +43,7 @@ removeClient = async (req, res, next) => {
         );
 
         if (clientsAffected) {
+            //TODO move this repeated function
             const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
             const redisCli = await client();
             const message = {
