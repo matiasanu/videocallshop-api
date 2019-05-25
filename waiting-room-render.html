@@ -18,24 +18,6 @@
         return result;
     }
 
-    var params = getJsonFromUrl();
-
-    var storeId = params.storeId;
-    var clientId = params.clientId;
-
-    var socket = io('http://localhost:3000?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
-
-    socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
-        console.log('WAITING_ROOM_CHANGED', waitingRoom);
-        renderWaitingRoom(waitingRoom);
-    });
-
-    socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
-        console.log(waitingRoom);
-        console.log('WAITING_ROOM_SENDED' + waitingRoom);
-        renderWaitingRoom(waitingRoom);
-    });
-
     $( document ).ready(function() {
         $('#storeId').html(storeId);
         $('#clientId').html(clientId);
@@ -48,6 +30,29 @@
         });
     };
 
+    var params = getJsonFromUrl();
+
+    var storeId = params.storeId;
+    var clientId = params.clientId;
+
+    $.post(
+        'http://localhost:3000/waiting-room', // url
+        { storeId, clientId }, // params
+        () => { // callback
+            var socket = io('http://localhost:3000?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
+
+            socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
+                console.log('WAITING_ROOM_CHANGED', waitingRoom);
+                renderWaitingRoom(waitingRoom);
+            });
+
+            socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
+                console.log(waitingRoom);
+                console.log('WAITING_ROOM_SENDED' + waitingRoom);
+                renderWaitingRoom(waitingRoom);
+            });
+        }
+    );
 </script>
 <html>
     <body>

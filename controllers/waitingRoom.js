@@ -41,6 +41,16 @@ removeClient = async (req, res, next) => {
             storeId
         );
 
+        if (clientsAffected) {
+            const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+            const redisCli = await client();
+            const message = {
+                type: 'WAITING_ROOM_CHANGED',
+                value: waitingRoom,
+            };
+            redisCli.publish(`waitingRoom${storeId}`, JSON.stringify(message));
+        }
+
         const status = clientsAffected ? 200 : 404;
         const message = clientsAffected
             ? 'User Removed'
