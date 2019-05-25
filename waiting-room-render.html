@@ -26,19 +26,27 @@
     var socket = io('http://localhost:3000?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
 
     socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
-        console.log('WAITING_ROOM_CHANGED: ' + waitingRoom);
-        $("#waitingRoom").html(waitingRoom);
+        console.log('WAITING_ROOM_CHANGED', waitingRoom);
+        renderWaitingRoom(waitingRoom);
     });
 
     socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
-        console.log('WAITING_ROOM_SENDED: ' + waitingRoom);
-        $("#waitingRoom").html(waitingRoom);
+        console.log(waitingRoom);
+        console.log('WAITING_ROOM_SENDED' + waitingRoom);
+        renderWaitingRoom(waitingRoom);
     });
 
     $( document ).ready(function() {
         $('#storeId').html(storeId);
         $('#clientId').html(clientId);
     });
+
+    const renderWaitingRoom = waitingRoom => {
+        $("#waitingRoom").html("");
+        $.each(waitingRoom, (index, client) => {
+            $("#waitingRoom").append('<p>' + client + '</p>');
+        });
+    };
 
 </script>
 <html>

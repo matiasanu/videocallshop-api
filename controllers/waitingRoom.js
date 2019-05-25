@@ -1,4 +1,5 @@
 const waitingRoomModel = require('../models/waitingRoom');
+const client = require('../helpers/redis');
 
 pushClient = async (req, res, next) => {
     const { name, clientId, storeId } = req.body;
@@ -7,6 +8,16 @@ pushClient = async (req, res, next) => {
             clientId,
             storeId
         );
+
+        if (clientsAffected) {
+            const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+            const redisCli = await client();
+            const message = {
+                type: 'WAITING_ROOM_CHANGED',
+                value: waitingRoom,
+            };
+            redisCli.publish(`waitingRoom${storeId}`, JSON.stringify(message));
+        }
 
         const status = 200;
         const message = clientsAffected

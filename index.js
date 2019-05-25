@@ -119,7 +119,6 @@ client()
             // join to the socket.io room in order to listen when waiting room was changed
             socket.join(myWaitingRoomId, () => {
                 let rooms = Object.keys(socket.rooms);
-                console.log(rooms); // [ <socket.id>, 'room 237' ]
             });
 
             const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
