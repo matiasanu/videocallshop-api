@@ -3,15 +3,32 @@ const client = require('../helpers/redis');
 const pushClient = async (clientId, storeId) => {
     try {
         const redisCli = await client();
+
+        let waitingRoom = await getWaitingRoom(storeId);
+
+        // search if user already exists in waiting room queue
+        let clientFound = false;
+        waitingRoom.forEach(clientIdOnWaitingRoom => {
+            if (clientIdOnWaitingRoom === clientId) {
+                clientFound = true;
+            }
+        });
+
+        if (clientFound) {
+            // return members affected
+            return 0;
+        }
+
         const myWaitingRoomId = `waitingRoom${storeId}`;
-        const score = 0;
 
-        const membersAffected = await redisCli
+        let listLength = await redisCli
             .multi()
-            .zadd(myWaitingRoomId, score, clientId)
+            .rpush(myWaitingRoomId, clientId)
             .execAsync();
+        listLength = listLength[0];
 
-        return membersAffected[0];
+        // return members affected
+        return 1;
     } catch (err) {
         throw err;
     }
@@ -24,7 +41,7 @@ const removeClient = async (clientId, storeId) => {
 
         const membersAffected = await redisCli
             .multi()
-            .zrem(myWaitingRoomId, clientId)
+            .lrem(myWaitingRoomId, 0, clientId)
             .execAsync();
 
         return membersAffected[0];
@@ -40,7 +57,7 @@ const getWaitingRoom = async storeId => {
 
         const waitingRoom = await redisCli
             .multi()
-            .zrange(myWaitingRoomId, 0, -1)
+            .lrange(myWaitingRoomId, 0, -1)
             .execAsync();
 
         return waitingRoom[0];
