@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
 // heplers, controllers & models
-const client = require('./helpers/redis');
+const initRedisCli = require('./helpers/redis');
 const checkJwtToken = require('./helpers/jwt');
 const authenticationCtrl = require('./controllers/authentication');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
@@ -19,7 +19,7 @@ const stores = [
 
 // get a redis client
 // TODO use just one redis client
-client()
+initRedisCli()
     .then(redisCli => {
         // express & socket.io
         const express = require('express');

@@ -1,5 +1,4 @@
 const waitingRoomModel = require('../models/waitingRoom');
-const client = require('../helpers/redis');
 
 pushClient = async (req, res, next) => {
     const { name, clientId, storeId } = req.body;
@@ -12,7 +11,6 @@ pushClient = async (req, res, next) => {
         if (clientsAffected) {
             //TODO move this repeated function
             const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
-            const redisCli = await client();
             const message = {
                 type: 'WAITING_ROOM_CHANGED',
                 value: waitingRoom,
@@ -45,7 +43,6 @@ removeClient = async (req, res, next) => {
         if (clientsAffected) {
             //TODO move this repeated function
             const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
-            const redisCli = await client();
             const message = {
                 type: 'WAITING_ROOM_CHANGED',
                 value: waitingRoom,

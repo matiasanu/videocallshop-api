@@ -1,9 +1,13 @@
-const client = require('../helpers/redis');
+const initRedisCli = require('../helpers/redis');
+
+let redisCli = null;
+
+(async () => {
+    redisCli = await initRedisCli();
+})();
 
 const pushClient = async (clientId, storeId) => {
     try {
-        const redisCli = await client();
-
         let waitingRoom = await getWaitingRoom(storeId);
 
         // search if user already exists in waiting room queue
@@ -36,7 +40,6 @@ const pushClient = async (clientId, storeId) => {
 
 const removeClient = async (clientId, storeId) => {
     try {
-        const redisCli = await client();
         const myWaitingRoomId = `waitingRoom${storeId}`;
 
         const membersAffected = await redisCli
@@ -52,7 +55,6 @@ const removeClient = async (clientId, storeId) => {
 
 const getWaitingRoom = async storeId => {
     try {
-        const redisCli = await client();
         const myWaitingRoomId = `waitingRoom${storeId}`;
 
         const waitingRoom = await redisCli
