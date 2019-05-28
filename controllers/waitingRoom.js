@@ -8,7 +8,7 @@ let redisCli = null;
     redisCli = await initRedisCli();
 })();
 
-pushClient = async (req, res, next) => {
+const pushClient = async (req, res, next) => {
     const { name, clientId, storeId } = req.body;
     try {
         const clientsAffected = await waitingRoomModel.pushClient(
@@ -17,13 +17,7 @@ pushClient = async (req, res, next) => {
         );
 
         if (clientsAffected) {
-            //TODO move this repeated function
-            const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
-            const message = {
-                type: 'WAITING_ROOM_CHANGED',
-                value: waitingRoom,
-            };
-            redisCli.publish(`waitingRoom${storeId}`, JSON.stringify(message));
+            broadcastWaitingRoom(storeId);
         }
 
         const status = 200;
@@ -40,7 +34,7 @@ pushClient = async (req, res, next) => {
     }
 };
 
-removeClient = async (req, res, next) => {
+const removeClient = async (req, res, next) => {
     const { clientId, storeId } = req.params;
     try {
         const clientsAffected = await waitingRoomModel.removeClient(
@@ -49,13 +43,7 @@ removeClient = async (req, res, next) => {
         );
 
         if (clientsAffected) {
-            //TODO move this repeated function
-            const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
-            const message = {
-                type: 'WAITING_ROOM_CHANGED',
-                value: waitingRoom,
-            };
-            redisCli.publish(`waitingRoom${storeId}`, JSON.stringify(message));
+            broadcastWaitingRoom(storeId);
         }
 
         const status = clientsAffected ? 200 : 404;
@@ -72,7 +60,7 @@ removeClient = async (req, res, next) => {
     }
 };
 
-getWaitingRoom = async (req, res, next) => {
+const getWaitingRoom = async (req, res, next) => {
     const { storeId } = req.params;
     try {
         const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
@@ -86,6 +74,15 @@ getWaitingRoom = async (req, res, next) => {
         res.status(status);
         res.send({ status, message: err.message ? err.message : err });
     }
+};
+
+const broadcastWaitingRoom = async storeId => {
+    const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+    const message = {
+        type: 'WAITING_ROOM_CHANGED',
+        value: waitingRoom,
+    };
+    redisCli.publish(`waitingRoom${storeId}`, JSON.stringify(message));
 };
 
 module.exports = {

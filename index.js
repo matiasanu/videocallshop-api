@@ -17,14 +17,12 @@ const stores = [
     { storeId: 3, name: 'Mc Donals' },
 ];
 
-// get a redis client
-// TODO use just one redis client
 initRedisCli()
     .then(redisCli => {
         // express & socket.io
         const express = require('express');
         const app = express();
-        var http = require('http').Server(app);
+        let http = require('http').Server(app);
 
         const io = require('socket.io')(http, {
             path: '/waiting-room-socket',
