@@ -1,5 +1,11 @@
 const waitingRoomModel = require('../models/waitingRoom');
 
+let redisCli = null;
+
+(async () => {
+    redisCli = await initRedisCli();
+})();
+
 pushClient = async (req, res, next) => {
     const { name, clientId, storeId } = req.body;
     try {
