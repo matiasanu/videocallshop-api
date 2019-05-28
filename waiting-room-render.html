@@ -34,7 +34,7 @@
         '/waiting-room', // url
         { storeId, clientId }, // params
         () => { // callback
-            var socket = io('http://localhost:3000?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
+            var socket = io('?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
 
             socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
                 console.log('WAITING_ROOM_CHANGED', waitingRoom);
