@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const initRedisCli = require('./helpers/redis');
 const checkJwtToken = require('./helpers/jwt');
 const authenticationCtrl = require('./controllers/authentication');
+const storeCtrl = require('./controllers/store');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
 const waitingRoomModel = require('./models/waitingRoom');
 
@@ -29,44 +30,7 @@ initRedisCli()
         });
 
         // socket.io middleware to check the connection params
-        io.use(function(socket, next) {
-            try {
-                var storeId = socket.request._query.storeId;
-                var clientId = socket.request._query.clientId;
-
-                console.log(
-                    `Middleware: Trying to connect clientId ${clientId} to storeId ${storeId}`
-                );
-
-                let storeFound = false;
-
-                stores.forEach(store => {
-                    if (store.storeId == storeId) {
-                        storeFound = true;
-                    }
-                });
-
-                if (!storeFound) {
-                    console.log('The storeId number is not valid');
-                    return next(
-                        new Error('Middleware: The storeId number is not valid')
-                    );
-                }
-
-                if (clientId.length < 3) {
-                    console.log('The clientId number is not valid');
-                    return next(
-                        new Error(
-                            'Middleware: The clientId number is not valid'
-                        )
-                    );
-                }
-
-                next();
-            } catch (err) {
-                return next(new Error(err));
-            }
-        });
+        io.use(waitingRoomCtrl.checkSocketConnectionParams);
 
         // bodyParser
         app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
@@ -79,6 +43,8 @@ initRedisCli()
         app.use(express.static('public'));
 
         app.post('/authentication', authenticationCtrl.authenticateUser);
+
+        app.get('/stores/:storeId', storeCtrl.getStore);
 
         app.get('/waiting-room/:storeId', waitingRoomCtrl.getWaitingRoom);
         app.post('/waiting-room', waitingRoomCtrl.pushClient);
@@ -94,6 +60,7 @@ initRedisCli()
         //socket.io
 
         // subscribe nodejs to redis channels
+        // TODO: store stores in postgres DB
         stores.forEach(store => {
             redisCli.subscribe(`waitingRoom${store.storeId}`);
         });

@@ -1,9 +1,9 @@
 const pool = require('../helpers/postgres');
 
-const getUserByEmail = async email => {
+const getStore = async storeId => {
     try {
         return await pool.query(
-            `SELECT * FROM users WHERE email='${email}' LIMIT 1;`
+            `SELECT * FROM stores WHERE store_id='${storeId}' LIMIT 1;`
         );
     } catch (err) {
         console.log('ERROR query');
@@ -12,5 +12,5 @@ const getUserByEmail = async email => {
 };
 
 module.exports = {
-    getUserByEmail,
+    getStore,
 };

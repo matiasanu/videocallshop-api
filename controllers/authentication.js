@@ -12,7 +12,10 @@ authenticateUser = async (req, res, next) => {
         if (!rows.length) {
             const status = 401;
             res.status(status);
-            res.send({ status: 401, message: 'Incorrect email or password.' });
+            res.send({
+                status: status,
+                message: 'Incorrect email or password.',
+            });
 
             return;
         }
@@ -34,7 +37,7 @@ authenticateUser = async (req, res, next) => {
             const status = 401;
             res.status(status);
             res.send({
-                status: 401,
+                status: status,
                 message: 'Incorrect email or password.',
             });
         }

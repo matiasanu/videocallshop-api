@@ -76,6 +76,50 @@ const getWaitingRoom = async (req, res, next) => {
     }
 };
 
+const checkSocketConnectionParams = (socket, next) => {
+    // TODO: store stores in postgres DB
+    const stores = [
+        { storeId: 1, name: 'Sport 78' },
+        { storeId: 2, name: 'Blast' },
+        { storeId: 3, name: 'Mc Donals' },
+    ];
+
+    try {
+        var storeId = socket.request._query.storeId;
+        var clientId = socket.request._query.clientId;
+
+        console.log(
+            `Middleware: Trying to connect clientId ${clientId} to storeId ${storeId}`
+        );
+
+        let storeFound = false;
+
+        stores.forEach(store => {
+            if (store.storeId == storeId) {
+                storeFound = true;
+            }
+        });
+
+        if (!storeFound) {
+            console.log('The storeId number is not valid');
+            return next(
+                new Error('Middleware: The storeId number is not valid')
+            );
+        }
+
+        if (clientId.length < 3) {
+            console.log('The clientId number is not valid');
+            return next(
+                new Error('Middleware: The clientId number is not valid')
+            );
+        }
+
+        next();
+    } catch (err) {
+        return next(new Error(err));
+    }
+};
+
 const broadcastWaitingRoom = async storeId => {
     const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
     const message = {
@@ -89,4 +133,5 @@ module.exports = {
     pushClient,
     removeClient,
     getWaitingRoom,
+    checkSocketConnectionParams,
 };
