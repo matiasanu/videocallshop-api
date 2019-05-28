@@ -1,0 +1,62 @@
+<!--
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+-->
+
+<script src="js/socket.io.dev.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+
+<script>
+    function getJsonFromUrl(url) {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    $( document ).ready(function() {
+        $('#storeId').html(storeId);
+        $('#clientId').html(clientId);
+    });
+
+    const renderWaitingRoom = waitingRoom => {
+        $("#waitingRoom").html("");
+        $.each(waitingRoom, (index, client) => {
+            $("#waitingRoom").append('<p>' + client + '</p>');
+        });
+    };
+
+    var params = getJsonFromUrl();
+
+    var storeId = params.storeId;
+    var clientId = params.clientId;
+
+    $.post(
+        'http://localhost:3000/waiting-room', // url
+        { storeId, clientId }, // params
+        () => { // callback
+            var socket = io('http://localhost:3000?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
+
+            socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
+                console.log('WAITING_ROOM_CHANGED', waitingRoom);
+                renderWaitingRoom(waitingRoom);
+            });
+
+            socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
+                console.log(waitingRoom);
+                console.log('WAITING_ROOM_SENDED',  waitingRoom);
+                renderWaitingRoom(waitingRoom);
+            });
+        }
+    );
+</script>
+<html>
+    <body>
+        <h1>Sala de espera <span id="storeId"></span> - DNI: <span id="clientId"></span></h1>
+        <p><span id="waitingRoom"></span></p>
+    </body>
+</html>
