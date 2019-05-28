@@ -1,5 +1,7 @@
 const waitingRoomModel = require('../models/waitingRoom');
 
+const initRedisCli = require('../helpers/redis');
+
 let redisCli = null;
 
 (async () => {
