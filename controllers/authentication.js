@@ -27,6 +27,8 @@ authenticateUser = async (req, res, next) => {
 
             const token = jwt.sign(payload, process.env.JWT_SECRET);
 
+            await userModel.updateLastLoginByEmail(email);
+
             res.set('Authorization', 'Bearer ' + token);
             res.status(200);
             res.send(user);
