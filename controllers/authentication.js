@@ -4,15 +4,18 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 authenticateUser = async (req, res, next) => {
-    const { email, password } = req.body;
+    const { email, password, role_id } = req.body;
 
     try {
-        const { rows } = await userModel.getUserByEmail(email);
+        const { rows } = await userModel.getUserByEmail(email, role_id);
 
         if (!rows.length) {
             const status = 401;
             res.status(status);
-            res.send({ status: 401, message: 'Incorrect email or password.' });
+            res.send({
+                status: status,
+                message: 'Incorrect email or password.',
+            });
 
             return;
         }
