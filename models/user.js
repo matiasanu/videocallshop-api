@@ -1,12 +1,23 @@
 const pool = require('../helpers/postgres');
 
-const getUserByEmail = async (email, role_id) => {
+const getUserRolesByEmail = async email => {
+    try {
+        return await pool.query(
+            `SELECT * FROM users u, users_roles ur WHERE u.user_id = ur.user_id AND u.email='${email}' LIMIT 1;`
+        );
+    } catch (err) {
+        console.log('ERROR query getUserByEmail');
+        throw new Error(err.message);
+    }
+};
+
+const getUserByEmailRole = async (email, role_id) => {
     try {
         return await pool.query(
             `SELECT * FROM users u, users_roles ur WHERE u.user_id = ur.user_id AND u.email='${email}' AND ur.role_id='${role_id}' LIMIT 1;`
         );
     } catch (err) {
-        console.log('ERROR query getUserByEmail');
+        console.log('ERROR query getUserByEmailRole');
         throw new Error(err.message);
     }
 };
@@ -25,6 +36,7 @@ const updateLastLoginByEmail = async email => {
 };
 
 module.exports = {
-    getUserByEmail,
+    getUserRolesByEmail,
+    getUserByEmailRole,
     updateLastLoginByEmail,
 };

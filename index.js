@@ -78,6 +78,8 @@ initRedisCli()
 
         app.use(express.static('public'));
 
+        app.post('/client', clientCtrl.registerClient);
+
         app.post('/authentication', authenticationCtrl.authenticateUser);
 
         app.get('/waiting-room/:storeId', waitingRoomCtrl.getWaitingRoom);

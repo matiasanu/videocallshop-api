@@ -7,7 +7,7 @@ authenticateUser = async (req, res, next) => {
     const { email, password, role_id } = req.body;
 
     try {
-        const { rows } = await userModel.getUserByEmail(email, role_id);
+        const { rows } = await userModel.getUserByEmailRole(email, role_id);
 
         if (!rows.length) {
             const status = 401;
