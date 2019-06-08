@@ -272,6 +272,11 @@ buffer-equal-constant-time@1.0.1:
   resolved "https://registry.yarnpkg.com/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz#f8e71132f7ffe6e01a5c9697a4c6f3e48d5cc819"
   integrity sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk=
 
+buffer-writer@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/buffer-writer/-/buffer-writer-1.0.0.tgz#6c29c3b2dea0c9e455a1f261a199a48a04f88b08"
+  integrity sha1-bCnDst6gyeRVofJhoZmkigT4iwg=
+
 buffer-writer@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/buffer-writer/-/buffer-writer-2.0.0.tgz#ce7eb81a38f7829db09c873f2fbb792c0c98ec04"
@@ -831,6 +836,11 @@ gauge@~2.7.3:
     string-width "^1.0.1"
     strip-ansi "^3.0.1"
     wide-align "^1.1.0"
+
+generic-pool@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/generic-pool/-/generic-pool-2.1.1.tgz#af04dc2c325cfcb975023fa52bfce9617a7435fd"
+  integrity sha1-rwTcLDJc/Ll1Aj+lK/zpYXp0Nf0=
 
 get-stream@^3.0.0:
   version "3.0.0"
@@ -1698,6 +1708,11 @@ package-json@^4.0.0:
     registry-url "^3.0.3"
     semver "^5.1.0"
 
+packet-reader@0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/packet-reader/-/packet-reader-0.2.0.tgz#819df4d010b82d5ea5671f8a1a3acf039bcd7700"
+  integrity sha1-gZ300BC4LV6lZx+KGjrPA5vNdwA=
+
 packet-reader@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/packet-reader/-/packet-reader-1.0.0.tgz#9238e5480dedabacfe1fe3f2771063f164157d74"
@@ -1788,6 +1803,14 @@ pause@0.0.1:
   resolved "https://registry.yarnpkg.com/pause/-/pause-0.0.1.tgz#1d408b3fdb76923b9543d96fb4c9dfd535d9cb5d"
   integrity sha1-HUCLP9t2kjuVQ9lvtMnf1TXZy10=
 
+pg-camelcase@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/pg-camelcase/-/pg-camelcase-0.0.3.tgz#b2c5e05b34be5f8211ac46b212dd4e7f2107eb59"
+  integrity sha1-ssXgWzS+X4IRrEayEt1OfyEH61k=
+  optionalDependencies:
+    pg "*"
+    pg.js "*"
+
 pg-connection-string@0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/pg-connection-string/-/pg-connection-string-0.1.3.tgz#da1847b20940e42ee1492beaf65d49d91b245df7"
@@ -1803,6 +1826,11 @@ pg-pool@^2.0.4:
   resolved "https://registry.yarnpkg.com/pg-pool/-/pg-pool-2.0.6.tgz#7b561a482feb0a0e599b58b5137fd2db3ad8111c"
   integrity sha512-hod2zYQxM8Gt482q+qONGTYcg/qVcV32VHVPtktbBJs0us3Dj7xibISw0BAAXVMCzt8A/jhfJvpZaxUlqtqs0g==
 
+pg-types@1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/pg-types/-/pg-types-1.6.0.tgz#3872a0f199143025497f4ee2a65fdaf00d7ea8b3"
+  integrity sha1-OHKg8ZkUMCVJf07ipl/a8A1+qLM=
+
 pg-types@~2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/pg-types/-/pg-types-2.0.1.tgz#b8585a37f2a9c7b386747e44574799549e5f4933"
@@ -1813,6 +1841,31 @@ pg-types@~2.0.0:
     postgres-bytea "~1.0.0"
     postgres-date "~1.0.4"
     postgres-interval "^1.1.0"
+
+pg.js@*:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/pg.js/-/pg.js-4.1.1.tgz#654033ae706b31d44be1443883b2a5f9aae9cfc4"
+  integrity sha1-ZUAzrnBrMdRL4UQ4g7Kl+arpz8Q=
+  dependencies:
+    buffer-writer "1.0.0"
+    generic-pool "2.1.1"
+    packet-reader "0.2.0"
+    pg-connection-string "0.1.3"
+    pg-types "1.6.0"
+    pgpass "0.0.3"
+
+pg@*:
+  version "7.11.0"
+  resolved "https://registry.yarnpkg.com/pg/-/pg-7.11.0.tgz#a8b9ae9cf19199b7952b72957573d0a9c5e67c0c"
+  integrity sha512-YO4V7vCmEMGoF390LJaFaohWNKaA2ayoQOEZmiHVcAUF+YsRThpf/TaKCgSvsSE7cDm37Q/Cy3Gz41xiX/XjTw==
+  dependencies:
+    buffer-writer "2.0.0"
+    packet-reader "1.0.0"
+    pg-connection-string "0.1.3"
+    pg-pool "^2.0.4"
+    pg-types "~2.0.0"
+    pgpass "1.x"
+    semver "4.3.2"
 
 pg@^7.10.0:
   version "7.10.0"
@@ -1826,6 +1879,13 @@ pg@^7.10.0:
     pg-types "~2.0.0"
     pgpass "1.x"
     semver "4.3.2"
+
+pgpass@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/pgpass/-/pgpass-0.0.3.tgz#12e67e343b3189c2f31206ebc9cc0befffcf9140"
+  integrity sha1-EuZ+NDsxicLzEgbrycwL7//PkUA=
+  dependencies:
+    split "~0.3"
 
 pgpass@1.x:
   version "1.0.2"
@@ -2268,6 +2328,13 @@ split@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/split/-/split-1.0.1.tgz#605bd9be303aa59fb35f9229fbea0ddec9ea07d9"
   integrity sha512-mTyOoPbrivtXnwnIxZRFYRrPNtEFKlpB2fvjSnCQUiAA6qAZzqwna5envK4uk6OIeP17CsdF3rSBGYVBsU0Tkg==
+  dependencies:
+    through "2"
+
+split@~0.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/split/-/split-0.3.3.tgz#cd0eea5e63a211dfff7eb0f091c4133e2d0dd28f"
+  integrity sha1-zQ7qXmOiEd//frDwkcQTPi0N0o8=
   dependencies:
     through "2"
 

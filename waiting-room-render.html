@@ -15,7 +15,7 @@
 
     $( document ).ready(function() {
         $('#storeId').html(storeId);
-        $('#clientId').html(clientId);
+        $('#clientName').html(name + ' ' + lastName);
     });
 
     const renderWaitingRoom = waitingRoom => {
@@ -28,13 +28,15 @@
     var params = getJsonFromUrl();
 
     var storeId = params.storeId;
-    var clientId = params.clientId;
+    var email = params.email;
+    var name = params.name;
+    var lastName = params.lastName;
 
     $.post(
-        '/waiting-room', // url
-        { storeId, clientId }, // params
+        '/waiting-room/' + storeId, // url
+        { email, name, lastName }, // params
         () => { // callback
-            var socket = io('?clientId='+ clientId +'&storeId=' + storeId, { path: '/waiting-room-socket' });
+            var socket = io('?clientId='+ name +'&storeId=' + storeId, { path: '/waiting-room-socket' });
 
             socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
                 console.log('WAITING_ROOM_CHANGED', waitingRoom);
@@ -51,7 +53,8 @@
 </script>
 <html>
     <body>
-        <h1>Sala de espera <span id="storeId"></span> - DNI: <span id="clientId"></span></h1>
+        <h1>Tienda ID: <span id="storeId"></span></h1>
+        <h2>Cliente: <span id="clientName"></span></h2>
         <p><span id="waitingRoom"></span></p>
     </body>
 </html>

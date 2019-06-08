@@ -1,15 +1,17 @@
-const userModel = require('../models/user');
+const storeUserModel = require('../models/storeUser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 authenticateUser = async (req, res, next) => {
-    const { email, password, role_id } = req.body;
+    const { email, password } = req.body;
+
+    console.log(email, password);
 
     try {
-        const { rows } = await userModel.getUserByEmail(email, role_id);
+        const users = await storeUserModel.getUserByEmail(email);
 
-        if (!rows.length) {
+        if (!users.length) {
             const status = 401;
             res.status(status);
             res.send({
@@ -21,20 +23,21 @@ authenticateUser = async (req, res, next) => {
         }
 
         // user founded
-        let user = rows[0];
+        let user = users[0];
 
         // check password
         if (bcrypt.compareSync(password, user.password)) {
             delete user.password;
-            let payload = { user };
+            let payload = user;
 
             const token = jwt.sign(payload, process.env.JWT_SECRET);
 
-            await userModel.updateLastLoginByEmail(email);
+            await storeUserModel.updateLastLoginByEmail(email);
 
+            const status = 200;
             res.set('Authorization', 'Bearer ' + token);
-            res.status(200);
-            res.send(user);
+            res.status(status);
+            res.send({ status, data: user });
         } else {
             const status = 401;
             res.status(status);

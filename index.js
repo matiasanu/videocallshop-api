@@ -6,8 +6,8 @@ const bodyParser = require('body-parser');
 
 // heplers, controllers & models
 const initRedisCli = require('./helpers/redis');
-const checkJwtToken = require('./helpers/jwt');
-const authenticationCtrl = require('./controllers/authentication');
+const { checkToken } = require('./helpers/jwt');
+const storeUserAuthenticationCtrl = require('./controllers/storeUserAuthentication');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
 const waitingRoomModel = require('./models/waitingRoom');
 
@@ -71,21 +71,22 @@ initRedisCli()
         // bodyParser
         app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 
+        // log requests on console
         app.use(morgan('dev'));
 
         // public routes
         app.get('/', ({ res }) => res.send('videocallshop-api available'));
 
+        // serves waiting-room-render.html assets
         app.use(express.static('public'));
 
-        app.post('/authentication', authenticationCtrl.authenticateUser);
-
-        app.get('/waiting-room/:storeId', waitingRoomCtrl.getWaitingRoom);
-        app.post('/waiting-room', waitingRoomCtrl.pushClient);
-        app.delete(
-            '/waiting-room/:storeId/:clientId',
-            waitingRoomCtrl.removeClient
+        //Todo use npm express-validator package
+        app.post(
+            '/store-user-authentication',
+            storeUserAuthenticationCtrl.authenticateUser
         );
+
+        app.post('/waiting-room/:storeId', waitingRoomCtrl.pushClient);
 
         app.get('/waiting-room-render', function(req, res) {
             res.sendFile(__dirname + '/waiting-room-render.html');
@@ -129,7 +130,10 @@ initRedisCli()
         });
 
         // private routes
-        app.use(checkJwtToken);
+        app.use(checkToken);
+
+        app.get('/waiting-room/:storeId', waitingRoomCtrl.getWaitingRoom);
+        app.delete('/waiting-room', waitingRoomCtrl.removeClient);
 
         app.get('/private', ({ res }) =>
             res.send({ status: 200, message: 'You are in' })

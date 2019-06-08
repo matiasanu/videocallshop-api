@@ -1,4 +1,5 @@
 const initRedisCli = require('../helpers/redis');
+const pool = require('../helpers/postgres');
 
 let redisCli = null;
 
@@ -6,45 +7,58 @@ let redisCli = null;
     redisCli = await initRedisCli();
 })();
 
-const pushClient = async (clientId, storeId) => {
+const storeRequest = async (storeId, email, name, lastName) => {
     try {
-        let waitingRoom = await getWaitingRoom(storeId);
+        const now = new Date().toISOString();
 
-        // search if user already exists in waiting room queue
-        let clientFound = false;
-        waitingRoom.forEach(clientIdOnWaitingRoom => {
-            if (clientIdOnWaitingRoom === clientId) {
-                clientFound = true;
-            }
-        });
+        const result = await pool.query(
+            `INSERT INTO waiting_room_requests(store_id, name, last_name, email, created_on) VALUES ('${storeId}', '${name}', '${lastName}', '${email}', '${now}') RETURNING waiting_room_request_id;`
+        );
 
-        if (clientFound) {
-            // return members affected
-            return 0;
-        }
+        return result.rows[0].waitingRoomRequestId;
+    } catch (err) {
+        console.log('ERROR query storeRequest');
+        throw new Error(err.message);
+    }
+};
 
-        const myWaitingRoomId = `waitingRoom${storeId}`;
+const getRequest = async waitingRoomRequestId => {
+    try {
+        const result = await pool.query(
+            `SELECT * FROM waiting_room_requests r WHERE r.waiting_room_request_id='${waitingRoomRequestId}' LIMIT 1;`
+        );
+
+        return result.rows;
+    } catch (err) {
+        console.log('ERROR query getRequest');
+        throw new Error(err.message);
+    }
+};
+
+const pushClient = async (requestId, storeId) => {
+    try {
+        const waitingRoomId = `waitingRoom${storeId}`;
 
         let listLength = await redisCli
             .multi()
-            .rpush(myWaitingRoomId, clientId)
+            .rpush(waitingRoomId, requestId)
             .execAsync();
         listLength = listLength[0];
 
         // return members affected
-        return 1;
+        return listLength;
     } catch (err) {
         throw err;
     }
 };
 
-const removeClient = async (clientId, storeId) => {
+const removeClient = async (waitingRoomRequestId, storeId) => {
     try {
         const myWaitingRoomId = `waitingRoom${storeId}`;
 
         const membersAffected = await redisCli
             .multi()
-            .lrem(myWaitingRoomId, 0, clientId)
+            .lrem(myWaitingRoomId, 0, waitingRoomRequestId)
             .execAsync();
 
         return membersAffected[0];
@@ -69,6 +83,8 @@ const getWaitingRoom = async storeId => {
 };
 
 module.exports = {
+    getRequest,
+    storeRequest,
     pushClient,
     removeClient,
     getWaitingRoom,
