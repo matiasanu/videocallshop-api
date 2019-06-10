@@ -65,28 +65,35 @@ const pushClient = async (req, res, next) => {
 };
 
 const removeClient = async (req, res, next) => {
-    let { waitingRoomRequestId } = req.body;
+    let { storeId, waitingRoomRequestId } = req.params;
     waitingRoomRequestId = parseInt(waitingRoomRequestId);
+    storeId = parseInt(storeId);
 
-    // check request
     try {
+        // check request
         const requests = await waitingRoomModel.getRequest(
             waitingRoomRequestId
         );
 
         if (!requests.length) {
+            // request not founded
             throw new Error('Request is not exist');
         }
 
-        const { storeId } = requests[0];
+        const request = requests[0];
 
-        //Check permissions
+        if (request.storeId !== storeId) {
+            // The request is not from this store
+            throw new Error('The request is not from this store');
+        }
+
+        //Check user permissions
         const isTheClient =
             parseInt(req.jwtDecoded.waitingRoomRequestId) ===
-            waitingRoomRequestId;
+            request.waitingRoomRequestId;
         const isAnAuthorizedSeller =
             (req.jwtDecoded.roleId == 1 || req.jwtDecoded.roleId == 2) &&
-            parseInt(req.jwtDecoded.storeId) === storeId;
+            parseInt(req.jwtDecoded.storeId) === request.storeId;
 
         console.log('isTheClient', isTheClient);
         console.log('isAnAuthorizedSeller', isAnAuthorizedSeller);
@@ -129,14 +136,13 @@ const getWaitingRoom = async (req, res, next) => {
     storeId = parseInt(storeId);
 
     try {
-        /* ToDo Move this to a middleware
+        /*
          Check permissions
          1. If the storeId of the client token is the same of the store that want to view
          2. If is a seller of the store
         */
 
         if (parseInt(req.jwtDecoded.storeId) !== storeId) {
-            console.log('.' + req.jwtDecoded.storeId !== storeId + '.');
             const status = 401;
             res.status(status).send({
                 status: status,
@@ -178,8 +184,77 @@ const broadcastWaitingRoom = async storeId => {
     redisCli.publish(`waitingRoom${storeId}`, JSON.stringify(message));
 };
 
+const socketMiddleware = async (socket, next) => {
+    try {
+        let headerToken = socket.handshake.headers.authorization;
+        headerToken = jwtHelper.getTokenFromHeader(headerToken);
+        const jwtDecoded = jwt.verify(headerToken, process.env.JWT_SECRET);
+
+        const storeIdRequested = parseInt(socket.handshake.query.storeId);
+
+        const isAnAuthorizedSeller =
+            (parseInt(jwtDecoded.roleId) === 1 ||
+                parseInt(jwtDecoded.roleId) === 2) &&
+            parseInt(jwtDecoded.storeId) === parseInt(storeIdRequested);
+
+        const isAClient =
+            parseInt(jwtDecoded.storeId) === parseInt(storeIdRequested);
+
+        //Check permissions
+        if (!isAnAuthorizedSeller && !isAClient) {
+            throw new Error('Unauthorized');
+        }
+
+        next();
+    } catch (err) {
+        socket.disconnect();
+        return next(err);
+    }
+};
+
+const socketConnection = async socket => {
+    try {
+        let headerToken = socket.handshake.headers.authorization;
+        headerToken = jwtHelper.getTokenFromHeader(headerToken);
+        const jwtDecoded = jwt.verify(headerToken, process.env.JWT_SECRET);
+        const waitingRoomRequestId = jwtDecoded.waitingRoomRequestId;
+
+        const storeId = socket.handshake.query.storeId;
+        const myWaitingRoomId = `waitingRoom${storeId}`;
+
+        if (waitingRoomRequestId) {
+            console.log(
+                `waitingRoomRequestId ${waitingRoomRequestId} listening ${storeId}`
+            );
+        }
+
+        // join to the socket.io room in order to listen when waiting room was changed
+        socket.join(myWaitingRoomId, () => {
+            let rooms = Object.keys(socket.rooms);
+        });
+
+        const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+
+        socket.emit('WAITING_ROOM_SENDED', waitingRoom);
+
+        socket.on('disconnect', function() {
+            console.log(
+                `waitingRoomRequestId ${waitingRoomRequestId} disconnected to ${storeId}`
+            );
+        });
+    } catch (err) {
+        socket.disconnect();
+        console.log(
+            '------ ERROR EN EL HANDLER CONNECT DEL SOCKET ------',
+            err.message
+        );
+    }
+};
+
 module.exports = {
     pushClient,
     removeClient,
     getWaitingRoom,
+    socketMiddleware,
+    socketConnection,
 };
