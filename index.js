@@ -28,7 +28,7 @@ initRedisCli()
         // ------- PUBLIC ROUTES -------
         app.get('/', ({ res }) => res.send('videocallshop-api available'));
 
-        // serves waiting-room-render.html assets
+        // serves static assets
         app.use(express.static('public'));
 
         //Todo use npm express-validator package
@@ -38,14 +38,6 @@ initRedisCli()
         );
 
         app.post('/waiting-room/:storeId', waitingRoomCtrl.pushClient);
-
-        app.get('/waiting-room-render', function(req, res) {
-            res.sendFile(__dirname + '/waiting-room-render.html');
-        });
-
-        app.get('/waiting-room-render-store', function(req, res) {
-            res.sendFile(__dirname + '/waiting-room-render-store.html');
-        });
 
         // ------- PRIVATE ROUTES -------
         app.use(checkToken);
