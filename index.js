@@ -23,15 +23,17 @@ initRedisCli()
         app.use(express.static('public'));
         app.use(cookieParser());
         app.use(
-            //ToDo Implement postgresql
+            //ToDo Implement postgresql for sessions
             expressSession({
-                //ToDo Check options
+                //ToDo Check session options
                 secret: 'max',
                 saveUninitialized: false,
                 resave: false,
             })
         );
 
+        //ToDo Implement param verifications
+        //ToDo Implement permissions middleware
         app.get('/', ({ res }) => res.send('videocallshop-api available'));
         app.post(
             '/authentication/store',

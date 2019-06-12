@@ -131,28 +131,6 @@ const broadcastWaitingRoom = async storeId => {
 
 const socketMiddleware = async (socket, next) => {
     try {
-        //ToDo: Integrate this to the authentication (no validate token again)
-        let headerToken = socket.handshake.headers.authorization;
-        headerToken = jwtHelper.getTokenFromHeader(headerToken);
-        const jwtDecoded = jwt.verify(headerToken, process.env.JWT_SECRET);
-
-        const storeIdRequested = parseInt(socket.handshake.query.storeId);
-
-        const isAnAuthorizedSeller =
-            (parseInt(jwtDecoded.roleId) === 1 ||
-                parseInt(jwtDecoded.roleId) === 2) &&
-            parseInt(jwtDecoded.storeId) === parseInt(storeIdRequested);
-
-        const isAClient =
-            parseInt(jwtDecoded.storeId) === parseInt(storeIdRequested);
-
-        //Check permissions
-        if (!isAnAuthorizedSeller && !isAClient) {
-            const err = new Error('Unauthorized.');
-            err.status = 401;
-            return next(err);
-        }
-
         return next();
     } catch (err) {
         socket.disconnect();
@@ -162,20 +140,8 @@ const socketMiddleware = async (socket, next) => {
 
 const socketConnection = async socket => {
     try {
-        //ToDo: Get this information without validate token again
-        let headerToken = socket.handshake.headers.authorization;
-        headerToken = jwtHelper.getTokenFromHeader(headerToken);
-        const jwtDecoded = jwt.verify(headerToken, process.env.JWT_SECRET);
-        const waitingRoomRequestId = jwtDecoded.waitingRoomRequestId;
-
         const storeId = socket.handshake.query.storeId;
         const myWaitingRoomId = `waitingRoom${storeId}`;
-
-        if (waitingRoomRequestId) {
-            console.log(
-                `waitingRoomRequestId ${waitingRoomRequestId} listening ${storeId}`
-            );
-        }
 
         // join to the socket.io room in order to listen when waiting room was changed
         socket.join(myWaitingRoomId, () => {
@@ -186,11 +152,7 @@ const socketConnection = async socket => {
 
         socket.emit('WAITING_ROOM_SENDED', waitingRoom);
 
-        socket.on('disconnect', function() {
-            console.log(
-                `waitingRoomRequestId ${waitingRoomRequestId} disconnected to ${storeId}`
-            );
-        });
+        socket.on('disconnect', function() {});
     } catch (err) {
         socket.disconnect();
         console.log(
