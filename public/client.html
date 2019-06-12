@@ -1,0 +1,110 @@
+<script src="js/socket.io.dev.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+
+<script>
+    function getJsonFromUrl(url) {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    const renderWaitingRoom = waitingRoom => {
+        $("#waitingRoom").html("");
+        $.each(waitingRoom, (index, client) => {
+            $("#waitingRoom").append('<p>' + client + '</p>');
+        });
+    };
+
+    $( document ).ready(function() {
+        var params = getJsonFromUrl();
+
+        var storeId = params.storeId;
+        var email = params.email;
+        var name = params.name;
+        var lastName = params.lastName;
+
+        if(!storeId || !email || !name || !lastName) {
+            $('#invalidParams').show();
+            return ;
+        }
+
+        $("#storeId").html(storeId);
+        $("#clientData").html(email + ' - ' + name + ' - ' + lastName);
+
+        $.post(
+            '/waiting-room/' + storeId, // url
+            { email, name, lastName }, // params
+            (response, textStatus, request) => { // callback
+                const token = request.getResponseHeader('Authorization');
+                $("#token").html(token);
+
+                const waitingRoomRequestId = response.data.waitingRoomRequestId;
+                $("#waitingRoomRequestId").html(waitingRoomRequestId);
+
+                var socket = io(
+                    '?storeId='+ storeId,
+                    {
+                        path: '/waiting-room-socket',
+                        extraHeaders: {
+                            Authorization: token
+                        },
+                        transportOptions: {
+                            polling: {
+                                extraHeaders: {
+                                    Authorization: token
+                                }
+                            }
+                        }
+                    }
+                );
+
+                socket.on('disconnect', function(){
+                    $("#socketStatus").html("<span style='color: darkred'>disconnected</span>")
+                });
+
+                socket.on('connect', function(){
+                    $("#socketStatus").html("<span style='color: green'>connected</span>")
+                });
+
+                socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
+                    console.log(waitingRoom);
+                    console.log('WAITING_ROOM_SENDED',  waitingRoom);
+                    renderWaitingRoom(waitingRoom);
+                });
+
+                socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
+                    console.log('WAITING_ROOM_CHANGED', waitingRoom);
+                    renderWaitingRoom(waitingRoom);
+                });
+            }
+        );
+
+    });
+</script>
+<html>
+    <body>
+        <div style="display: none;" id="invalidParams">
+            <h1 style="color: darkred">Error - Required uri: ?storeId=1&email=validemail@gmail.com&name=Juan&lastName=Perez</h1>
+        </div>
+
+        <h1>Tienda ID: <span id="storeId"></span></h1>
+        <h1>Socket STATUS: <span id="socketStatus"></span></h1>
+
+        <h2>waitingRoomRequestId</h2>
+        <p id="waitingRoomRequestId"></p>
+
+        <h2>Client Data</h2>
+        <p id="clientData"></p>
+
+        <h2>Token</h2>
+        <p id="token"></p>
+
+        <h1>COLA</h1>
+        <p><span id="waitingRoom"></span></p>
+    </body>
+</html>

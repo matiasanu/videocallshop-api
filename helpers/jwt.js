@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 
 let checkToken = (req, res, next) => {
-    let token = req.headers['x-access-token'] || req.headers['authorization']; // Express headers are auto converted to lowercase
+    let header = req.headers['x-access-token'] || req.headers['authorization']; // Express headers are auto converted to lowercase
 
-    if (!token) {
+    if (!header) {
         const status = 400;
         return res.status(status).send({
             status: status,
@@ -11,13 +11,10 @@ let checkToken = (req, res, next) => {
         });
     }
 
-    if (token.startsWith('Bearer ')) {
-        // Remove Bearer from string
-        token = token.slice(7, token.length);
-    }
+    const token = getTokenFromHeader(header);
 
     try {
-        req.decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.jwtDecoded = jwt.verify(token, process.env.JWT_SECRET);
         next();
     } catch (err) {
         const status = 401;
@@ -28,4 +25,13 @@ let checkToken = (req, res, next) => {
     }
 };
 
-module.exports = checkToken;
+let getTokenFromHeader = header => {
+    if (header.startsWith('Bearer ')) {
+        // Remove Bearer from string
+        return header.slice(7, header.length);
+    }
+
+    return header;
+};
+
+module.exports = { checkToken, getTokenFromHeader };

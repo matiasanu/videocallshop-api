@@ -1,9 +1,11 @@
-const { Pool } = require('pg');
+const pg = require('pg');
+var pgCamelCase = require('pg-camelcase');
+var revertCamelCase = pgCamelCase.inject(pg);
 
 config = {
     ssl: process.env.PGSSL ? process.env.PGSSL : true,
     connectionString: process.env.DATABASE_URL,
 };
-const pool = new Pool(config);
+const pool = new pg.Pool(config);
 
 module.exports = pool;
