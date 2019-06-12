@@ -33,6 +33,9 @@
             return ;
         }
 
+        $("#storeId").html(storeId);
+        $("#clientData").html(email + ' - ' + name + ' - ' + lastName);
+
         $.post(
             '/waiting-room/' + storeId, // url
             { email, name, lastName }, // params
@@ -95,7 +98,10 @@
         <h2>waitingRoomRequestId</h2>
         <p id="waitingRoomRequestId"></p>
 
-        <h2><span id="clientName"></span></h2>
+        <h2>Client Data</h2>
+        <p id="clientData"></p>
+
+        <h2>Token</h2>
         <p id="token"></p>
 
         <h1>COLA</h1>

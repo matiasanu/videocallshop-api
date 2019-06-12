@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const jwtHelper = require('../helpers/jwt');
+const jwtHelper = require('../helpers/jwt'); //ToDo: Remove this helper
 const waitingRoomModel = require('../models/waitingRoom');
 const storeModel = require('../models/store');
 
@@ -16,52 +16,45 @@ const pushClient = async (req, res, next) => {
     const { name, lastName, email } = req.body;
     const { storeId } = req.params;
 
-    try {
-        // check store
-        const stores = await storeModel.getStore(storeId);
+    // check store
+    const stores = await storeModel.getStore(storeId);
 
-        if (!stores.length) {
-            throw new Error('Store is not exist');
-        }
-
-        // store request
-        const waitingRoomRequestId = await waitingRoomModel.storeRequest(
-            storeId,
-            email,
-            name,
-            lastName
-        );
-
-        // push into the waiting room
-        const waitingRoomLength = await waitingRoomModel.pushClient(
-            waitingRoomRequestId,
-            storeId
-        );
-
-        // broadcast waiting room to socket
-        await broadcastWaitingRoom(storeId);
-
-        // generate token response
-        const payload = {
-            name,
-            lastName,
-            email,
-            waitingRoomRequestId,
-            storeId,
-        };
-
-        const token = jwt.sign(payload, process.env.JWT_SECRET);
-
-        const status = 200;
-        res.status(status);
-        res.set('Authorization', 'Bearer ' + token);
-        res.send({ status, data: payload });
-    } catch (err) {
-        const status = 500;
-        console.log(err);
-        res.status(status);
-        res.send({ status, message: err.message ? err.message : err });
+    if (!stores.length) {
+        throw new Error('Store is not exist');
     }
+
+    // store request
+    const waitingRoomRequestId = await waitingRoomModel.storeRequest(
+        storeId,
+        email,
+        name,
+        lastName
+    );
+
+    // push into the waiting room
+    const waitingRoomLength = await waitingRoomModel.pushClient(
+        waitingRoomRequestId,
+        storeId
+    );
+
+    // broadcast waiting room to socket
+    await broadcastWaitingRoom(storeId);
+
+    // generate token response
+    const payload = {
+        name,
+        lastName,
+        email,
+        waitingRoomRequestId,
+        storeId,
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET);
+
+    const status = 200;
+    res.status(status);
+    res.set('Authorization', 'Bearer ' + token);
+    res.send({ status, data: payload });
 };
 
 const removeClient = async (req, res, next) => {
@@ -69,110 +62,57 @@ const removeClient = async (req, res, next) => {
     waitingRoomRequestId = parseInt(waitingRoomRequestId);
     storeId = parseInt(storeId);
 
-    try {
-        // check request
-        const requests = await waitingRoomModel.getRequest(
-            waitingRoomRequestId
-        );
+    // check request
+    const requests = await waitingRoomModel.getRequest(waitingRoomRequestId);
 
-        if (!requests.length) {
-            // request not founded
-            throw new Error('Request is not exist');
-        }
-
-        const request = requests[0];
-
-        if (request.storeId !== storeId) {
-            // The request is not from this store
-            throw new Error('The request is not from this store');
-        }
-
-        //Check user permissions
-        const isTheClient =
-            parseInt(req.jwtDecoded.waitingRoomRequestId) ===
-            request.waitingRoomRequestId;
-        const isAnAuthorizedSeller =
-            (req.jwtDecoded.roleId == 1 || req.jwtDecoded.roleId == 2) &&
-            parseInt(req.jwtDecoded.storeId) === request.storeId;
-
-        console.log('isTheClient', isTheClient);
-        console.log('isAnAuthorizedSeller', isAnAuthorizedSeller);
-
-        if (!isTheClient && !isAnAuthorizedSeller) {
-            const status = 401;
-            res.status(status).send({
-                status: status,
-                message: 'Unauthorized',
-            });
-
-            return;
-        }
-
-        const clientsAffected = await waitingRoomModel.removeClient(
-            waitingRoomRequestId,
-            storeId
-        );
-
-        if (clientsAffected) {
-            await broadcastWaitingRoom(storeId);
-        }
-
-        const status = clientsAffected ? 200 : 404;
-        const message = clientsAffected
-            ? 'User Removed'
-            : 'User not found in a waiting room';
-        res.status(status);
-        res.send({ status, message });
-    } catch (err) {
-        const status = 500;
-        console.log(err);
-        res.status(status);
-        res.send({ status, message: err.message ? err.message : err });
+    if (!requests.length) {
+        // request not founded
+        throw new Error('Request is not exist');
     }
+
+    const request = requests[0];
+
+    if (request.storeId !== storeId) {
+        // The request is not from this store
+        throw new Error('The request is not from this store');
+    }
+
+    const clientsAffected = await waitingRoomModel.removeClient(
+        waitingRoomRequestId,
+        storeId
+    );
+
+    if (clientsAffected) {
+        await broadcastWaitingRoom(storeId);
+    }
+
+    const status = clientsAffected ? 200 : 404;
+    const message = clientsAffected
+        ? 'User Removed'
+        : 'User not found in a waiting room';
+    res.status(status);
+    res.send({ status, message });
 };
 
 const getWaitingRoom = async (req, res, next) => {
     let { storeId } = req.params;
     storeId = parseInt(storeId);
 
-    try {
-        /*
-         Check permissions
-         1. If the storeId of the client token is the same of the store that want to view
-         2. If is a seller of the store
-        */
+    // check store
+    const stores = await storeModel.getStore(storeId);
 
-        if (parseInt(req.jwtDecoded.storeId) !== storeId) {
-            const status = 401;
-            res.status(status).send({
-                status: status,
-                message: 'Unauthorized',
-            });
-
-            return;
-        }
-
-        // check store
-        const stores = await storeModel.getStore(storeId);
-
-        if (!stores.length) {
-            const status = 404;
-            res.status(status);
-            res.send({ status, message: 'Store not found.' });
-            return;
-        }
-
-        const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
-
-        const status = 200;
+    if (!stores.length) {
+        const status = 404;
         res.status(status);
-        res.send({ status, waitingRoom });
-    } catch (err) {
-        const status = 500;
-        console.log(err);
-        res.status(status);
-        res.send({ status, message: err.message ? err.message : err });
+        res.send({ status, message: 'Store not found.' });
+        return;
     }
+
+    const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+
+    const status = 200;
+    res.status(status);
+    res.send({ status, waitingRoom });
 };
 
 const broadcastWaitingRoom = async storeId => {
@@ -186,6 +126,7 @@ const broadcastWaitingRoom = async storeId => {
 
 const socketMiddleware = async (socket, next) => {
     try {
+        //ToDo: Integrate this to the authentication (no validate token again)
         let headerToken = socket.handshake.headers.authorization;
         headerToken = jwtHelper.getTokenFromHeader(headerToken);
         const jwtDecoded = jwt.verify(headerToken, process.env.JWT_SECRET);
@@ -205,7 +146,7 @@ const socketMiddleware = async (socket, next) => {
             throw new Error('Unauthorized');
         }
 
-        next();
+        return next();
     } catch (err) {
         socket.disconnect();
         return next(err);
@@ -214,6 +155,7 @@ const socketMiddleware = async (socket, next) => {
 
 const socketConnection = async socket => {
     try {
+        //ToDo: Get this information without validate token again
         let headerToken = socket.handshake.headers.authorization;
         headerToken = jwtHelper.getTokenFromHeader(headerToken);
         const jwtDecoded = jwt.verify(headerToken, process.env.JWT_SECRET);

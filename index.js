@@ -1,53 +1,65 @@
 // third libraries
 require('dotenv').config();
+const express = require('express');
 const pool = require('./helpers/postgres');
-const morgan = require('morgan');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const expressSession = require('express-session');
 const bodyParser = require('body-parser');
 
-// heplers, controllers & models
+// helpers, controllers & models
 const initRedisCli = require('./helpers/redis');
-const { checkToken } = require('./helpers/jwt');
-const storeUserAuthenticationCtrl = require('./controllers/storeUserAuthentication');
+const authenticationCtrl = require('./controllers/authentication');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
-const waitingRoomModel = require('./models/waitingRoom');
 const storeModel = require('./models/store');
+
+const app = express();
+const http = require('http').Server(app);
 
 initRedisCli()
     .then(async redisCli => {
-        // express & socket.io
-        const express = require('express');
-        const app = express();
-        let http = require('http').Server(app);
-
-        // bodyParser
         app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
-
-        // log requests on console
-        app.use(morgan('dev'));
-
-        // ------- PUBLIC ROUTES -------
-        app.get('/', ({ res }) => res.send('videocallshop-api available'));
-
-        // serves static assets
+        app.use(logger('dev'));
         app.use(express.static('public'));
+        app.use(cookieParser());
+        app.use(
+            //ToDo Implement postgresql
+            expressSession({
+                //ToDo Check options
+                secret: 'max',
+                saveUninitialized: false,
+                resave: false,
+            })
+        );
 
-        //Todo use npm express-validator package
+        app.get('/', ({ res }) => res.send('videocallshop-api available'));
         app.post(
-            '/store-user-authentication',
-            storeUserAuthenticationCtrl.authenticateUser
+            '/authentication/store',
+            authenticationCtrl.authenticateUserStore
         );
 
         app.post('/waiting-room/:storeId', waitingRoomCtrl.pushClient);
+        app.get(
+            '/waiting-room/:storeId',
+            authenticationCtrl.isUserAuthorized,
+            waitingRoomCtrl.getWaitingRoom
+        );
+        app.delete(
+            '/waiting-room/:storeId/:waitingRoomRequestId',
+            authenticationCtrl.isUserAuthorized,
+            waitingRoomCtrl.removeClient
+        );
 
-        // ------- PRIVATE ROUTES -------
-        app.use(checkToken);
+        app.use(function(err, req, res, next) {
+            res.status(err.status || 500);
+            res.send({ status: err.status, message: err.message });
+        });
 
         // socket.io
         const io = require('socket.io')(http, {
             path: '/waiting-room-socket',
         });
 
-        // socket.io middleware to check the connection params
         io.use(waitingRoomCtrl.socketMiddleware);
 
         // subscribe nodejs to redis channels
@@ -66,16 +78,6 @@ initRedisCli()
         });
 
         io.on('connection', waitingRoomCtrl.socketConnection);
-
-        app.get('/waiting-room/:storeId', waitingRoomCtrl.getWaitingRoom);
-        app.delete(
-            '/waiting-room/:storeId/:waitingRoomRequestId',
-            waitingRoomCtrl.removeClient
-        );
-
-        app.get('/private', ({ res }) =>
-            res.send({ status: 200, message: 'You are in' })
-        );
 
         // listen nodejs
         const PORT = process.env.PORT || 3000;
