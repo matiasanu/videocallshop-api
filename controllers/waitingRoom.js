@@ -20,7 +20,9 @@ const pushClient = async (req, res, next) => {
     const stores = await storeModel.getStore(storeId);
 
     if (!stores.length) {
-        throw new Error('Store is not exist');
+        const err = new Error('Unauthorized.');
+        err.status = 500;
+        return next(err);
     }
 
     // store request
@@ -67,14 +69,18 @@ const removeClient = async (req, res, next) => {
 
     if (!requests.length) {
         // request not founded
-        throw new Error('Request is not exist');
+        const err = new Error('Request is not exist.');
+        err.status = 500;
+        return next(err);
     }
 
     const request = requests[0];
 
     if (request.storeId !== storeId) {
         // The request is not from this store
-        throw new Error('The request is not from this store');
+        const err = new Error('The request is not from this store');
+        err.status = 500;
+        return next(err);
     }
 
     const clientsAffected = await waitingRoomModel.removeClient(
@@ -102,10 +108,9 @@ const getWaitingRoom = async (req, res, next) => {
     const stores = await storeModel.getStore(storeId);
 
     if (!stores.length) {
-        const status = 404;
-        res.status(status);
-        res.send({ status, message: 'Store not found.' });
-        return;
+        const err = new Error('Store not found.');
+        err.status = 404;
+        return next(err);
     }
 
     const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
@@ -143,7 +148,9 @@ const socketMiddleware = async (socket, next) => {
 
         //Check permissions
         if (!isAnAuthorizedSeller && !isAClient) {
-            throw new Error('Unauthorized');
+            const err = new Error('Unauthorized.');
+            err.status = 401;
+            return next(err);
         }
 
         return next();
