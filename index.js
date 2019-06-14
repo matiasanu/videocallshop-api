@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 // helpers, controllers & models
 const initRedisCli = require('./helpers/redis');
 const authenticationCtrl = require('./controllers/authentication');
+const storeCtrl = require('./controllers/store');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
 const storeModel = require('./models/store');
 
@@ -39,6 +40,8 @@ initRedisCli()
             '/authentication/store',
             authenticationCtrl.authenticateUserStore
         );
+        app.get('/store', storeCtrl.getStores);
+        app.get('/store/:storeId', storeCtrl.getStore);
 
         app.post('/waiting-room/:storeId', waitingRoomCtrl.pushClient);
         app.get(
