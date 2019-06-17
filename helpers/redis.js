@@ -19,6 +19,8 @@ let client = () => {
         connector.on('connect', () => {
             resolve(connector);
         });
+    }).catch(err => {
+        return err;
     });
 };
 

@@ -9,57 +9,36 @@ const bodyParser = require('body-parser');
 
 // helpers, controllers & models
 const initRedisCli = require('./helpers/redis');
-const authenticationCtrl = require('./controllers/authentication');
-const storeCtrl = require('./controllers/store');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
 const storeModel = require('./models/store');
+
+const routes = require('./routes/index');
 
 const app = express();
 const http = require('http').Server(app);
 
-initRedisCli()
-    .then(async redisCli => {
-        app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
-        app.use(logger('dev'));
-        app.use(express.static('public'));
-        app.use(cookieParser());
-        app.use(
-            //ToDo Implement postgresql for sessions
-            expressSession({
-                //ToDo Check session options
-                secret: 'max',
-                saveUninitialized: false,
-                resave: false,
-            })
-        );
+app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
+app.use(logger('dev'));
+app.use(express.static('public'));
+app.use(cookieParser());
+app.use(
+    //ToDo Implement postgresql for sessions
+    expressSession({
+        //ToDo Check session options
+        secret: 'max',
+        saveUninitialized: false,
+        resave: false,
+    })
+);
+app.use('/', routes);
+app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.send({ status: err.status, message: err.message });
+});
 
-        //ToDo Implement param verifications
-        //ToDo Implement permissions middleware
-        app.get('/', ({ res }) => res.send('videocallshop-api available'));
-        app.post(
-            '/authentication/store',
-            authenticationCtrl.authenticateUserStore
-        );
-        app.get('/store', storeCtrl.getStores);
-        app.get('/store/:storeId', storeCtrl.getStore);
-
-        app.post('/waiting-room/:storeId', waitingRoomCtrl.pushClient);
-        app.get(
-            '/waiting-room/:storeId',
-            authenticationCtrl.isUserAuthorized,
-            waitingRoomCtrl.getWaitingRoom
-        );
-        app.delete(
-            '/waiting-room/:storeId/:waitingRoomRequestId',
-            authenticationCtrl.isUserAuthorized,
-            waitingRoomCtrl.removeClient
-        );
-
-        app.use(function(err, req, res, next) {
-            res.status(err.status || 500);
-            res.send({ status: err.status, message: err.message });
-        });
-
+// run server
+(async function() {
+    try {
         // socket.io
         const io = require('socket.io')(http, {
             path: '/waiting-room-socket',
@@ -67,8 +46,10 @@ initRedisCli()
 
         io.use(waitingRoomCtrl.socketMiddleware);
 
-        // subscribe nodejs to redis channels
+        const redisCli = await initRedisCli();
         const stores = await storeModel.getStores();
+
+        // subscribe nodejs to redis channels
         stores.forEach(store => {
             redisCli.subscribe(`waitingRoom${store.storeId}`);
         });
@@ -89,7 +70,7 @@ initRedisCli()
         http.listen(PORT, () =>
             console.log(`videocallshop-api listen on port ${PORT}!`)
         );
-    })
-    .catch(err => {
-        console.log(err.message);
-    });
+    } catch (err) {
+        console.log('---ERROR ---', err.message);
+    }
+})();

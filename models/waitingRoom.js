@@ -7,7 +7,7 @@ let redisCli = null;
     redisCli = await initRedisCli();
 })();
 
-const storeRequest = async (storeId, email, name, lastName) => {
+const addRequest = async (storeId, email, name, lastName) => {
     try {
         const now = new Date().toISOString();
 
@@ -17,7 +17,7 @@ const storeRequest = async (storeId, email, name, lastName) => {
 
         return result.rows[0].waitingRoomRequestId;
     } catch (err) {
-        console.log('ERROR query storeRequest');
+        console.log('ERROR query addRequest');
         throw new Error(err.message);
     }
 };
@@ -26,6 +26,19 @@ const getRequest = async waitingRoomRequestId => {
     try {
         const result = await pool.query(
             `SELECT * FROM waiting_room_requests r WHERE r.waiting_room_request_id='${waitingRoomRequestId}' LIMIT 1;`
+        );
+
+        return result.rows;
+    } catch (err) {
+        console.log('ERROR query getRequest');
+        throw new Error(err.message);
+    }
+};
+
+const searchRequests = async (email, state) => {
+    try {
+        const result = await pool.query(
+            `SELECT * FROM waiting_room_requests r WHERE r.email='${email}' AND r.state='${state}' LIMIT 1;`
         );
 
         return result.rows;
@@ -82,10 +95,31 @@ const getWaitingRoom = async storeId => {
     }
 };
 
+const setState = async (waitingRoomRequestId, state) => {
+    try {
+        const now = new Date().toISOString();
+
+        const resultState = await pool.query(
+            `UPDATE waiting_room_requests SET state='${state}' WHERE waiting_room_request_id='${waitingRoomRequestId}';`
+        );
+
+        const resultLog = await pool.query(
+            `INSERT INTO waiting_room_log(waiting_room_request_id, state, created_on) VALUES('${waitingRoomRequestId}', '${state}', '${now}');`
+        );
+
+        return resultState.rows;
+    } catch (err) {
+        console.log('ERROR query setState');
+        throw new Error(err.message);
+    }
+};
+
 module.exports = {
     getRequest,
-    storeRequest,
+    addRequest,
     pushClient,
     removeClient,
     getWaitingRoom,
+    setState,
+    searchRequests,
 };
