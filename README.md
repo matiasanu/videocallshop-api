@@ -43,6 +43,11 @@ public
 ### `POST` - `/store/:storeId/waiting-room`
 Enter as a client in a waiting room.
 
+###### Params
+- email
+- lastName
+- name
+
 ###### Auth
 public
 
