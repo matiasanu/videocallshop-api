@@ -37,7 +37,7 @@
         $("#clientData").html(email + ' - ' + name + ' - ' + lastName);
 
         $.post(
-            '/waiting-room/' + storeId, // url
+            '/store/' + storeId + '/waiting-room', // url
             { email, name, lastName }, // params
             (response, textStatus, request) => { // callback
                 const token = request.getResponseHeader('Authorization');
