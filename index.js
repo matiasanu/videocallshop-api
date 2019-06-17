@@ -3,12 +3,24 @@ require('dotenv').config();
 const express = require('express');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
+
+const expressSession = require('express-session');
+const session = expressSession({
+        store: new (require('connect-pg-simple')(expressSession))(),
+        secret: process.env.SESSION_SECRET,
+        saveUninitialized: false,
+        resave: false,
+        cookie: {
+            magAge: 604800000, //a week
+        },
+    }),
+    sharedsession = require('express-socket.io-session');
 const bodyParser = require('body-parser');
 
 // helpers, controllers & models
 const initRedisCli = require('./helpers/redis');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
+const authenticationCtrl = require('./controllers/authentication');
 const storeModel = require('./models/store');
 
 const routes = require('./routes/index');
@@ -20,17 +32,7 @@ app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-
 app.use(logger('dev'));
 app.use(express.static('public'));
 app.use(cookieParser());
-app.use(
-    session({
-        store: new (require('connect-pg-simple')(session))(),
-        secret: process.env.SESSION_SECRET,
-        saveUninitialized: false,
-        resave: false,
-        cookie: {
-            magAge: 604800000, //a week
-        },
-    })
-);
+app.use(session);
 app.use('/', routes);
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
@@ -38,13 +40,14 @@ app.use(function(err, req, res, next) {
 });
 
 // run server
-(async function() {
+(async function(session) {
     try {
         // socket.io
         const io = require('socket.io')(http, {
             path: '/waiting-room-socket',
         });
 
+        io.use(sharedsession(session)); // Share session with io sockets
         io.use(waitingRoomCtrl.socketMiddleware);
 
         const redisCli = await initRedisCli();
@@ -74,4 +77,4 @@ app.use(function(err, req, res, next) {
     } catch (err) {
         console.log('---ERROR ---', err.message);
     }
-})();
+})(session);

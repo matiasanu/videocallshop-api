@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 
+const authenticationCtrl = require('../controllers/authentication');
+
 const waitingRoomModel = require('../models/waitingRoom');
 const storeModel = require('../models/store');
 
@@ -169,7 +171,35 @@ const broadcastWaitingRoom = async storeId => {
 
 const socketMiddleware = async (socket, next) => {
     try {
-        return next();
+        const storeId = socket.handshake.query.storeId;
+
+        let authorized = false;
+
+        // user store
+        try {
+            if (
+                parseInt(socket.handshake.session.user.storeId) ===
+                parseInt(storeId)
+            ) {
+                authorized = true;
+            }
+        } catch (err) {}
+
+        // client
+        try {
+            let headerToken = socket.handshake.headers.authorization;
+            headerToken = authenticationCtrl.getTokenFromHeader(headerToken);
+            const jwtDecoded = jwt.verify(headerToken, process.env.JWT_SECRET);
+            if (parseInt(jwtDecoded.storeId) === parseInt(storeId)) {
+                authorized = true;
+            }
+        } catch (err) {}
+
+        if (!authorized) {
+            next(new Error('Unauthorized'));
+        }
+
+        next();
     } catch (err) {
         socket.disconnect();
         return next(err);

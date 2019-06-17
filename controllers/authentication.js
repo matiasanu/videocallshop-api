@@ -124,4 +124,5 @@ module.exports = {
     authenticateUserStore,
     isClientOrStoreUser,
     isSameUserOrStoreUserOwner,
+    getWaitingRoomTokenFromHeader,
 };
