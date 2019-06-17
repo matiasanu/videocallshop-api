@@ -22,7 +22,6 @@ app.use(logger('dev'));
 app.use(express.static('public'));
 app.use(cookieParser());
 app.use(
-    //ToDo Implement postgresql for sessions
     session({
         store: new (require('connect-pg-simple')(session))(),
         secret: 'max',
