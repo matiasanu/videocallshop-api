@@ -135,6 +135,45 @@ const removeClient = async (req, res, next) => {
     }
 };
 
+const removeAll = async (req, res, next) => {
+    try {
+        let { storeId } = req.params;
+
+        const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+
+        let clientsRemoved = 0;
+
+        for (const waitingRoomRequestId of waitingRoom) {
+            console.log('ATTEMPT DELETE', waitingRoomRequestId);
+            console.log('FROM', storeId);
+            const clientsAffected = await waitingRoomModel.removeClient(
+                waitingRoomRequestId,
+                storeId
+            );
+
+            console.log('CLIENTS AFFECTED', clientsAffected);
+
+            if (clientsAffected) {
+                clientsRemoved++;
+                await waitingRoomModel.setState(waitingRoomRequestId, REMOVED);
+            }
+        }
+
+        if (clientsRemoved) {
+            await broadcastWaitingRoom(storeId);
+        }
+
+        const status = 200;
+        const message = 'Empty waiting room.';
+        const data = { clientsRemoved };
+        res.status(status);
+        res.send({ status, message, data });
+    } catch (err) {
+        err.status = 500;
+        return next(err);
+    }
+};
+
 const getWaitingRoom = async (req, res, next) => {
     try {
         let { storeId } = req.params;
@@ -233,6 +272,7 @@ const socketConnection = async socket => {
 module.exports = {
     pushClient,
     removeClient,
+    removeAll,
     getWaitingRoom,
     socketMiddleware,
     socketConnection,

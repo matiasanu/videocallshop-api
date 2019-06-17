@@ -163,10 +163,33 @@ const isClientOwnerOrStoreUserOwner = async (req, res, next) => {
     return next(err);
 };
 
+const isStoreUserOwner = async (req, res, next) => {
+    const storeId = req.params.storeId || req.body.storeId;
+
+    const isAnAuthenticatedUserStore = isAuthenticatedUserStore(req);
+    if (isAnAuthenticatedUserStore) {
+        console.log('isAnAuthenticatedUserStore: ', 'YES');
+        const user = req.session.user;
+        if (parseInt(user.storeId) === parseInt(storeId)) {
+            console.log('isStoreUserOwner: ', 'YES');
+            return next();
+        } else {
+            console.log('isStoreUserOwner: ', 'NO');
+        }
+    } else {
+        console.log('isAnAuthenticatedUserStore: ', 'NO');
+    }
+
+    const err = new Error('Unauthorized.');
+    err.status = 401;
+    return next(err);
+};
+
 module.exports = {
     authenticateUserStore,
     isClientOrStoreUser,
     isClientInQueueOrStoreUserOwner,
     isClientOwnerOrStoreUserOwner,
+    isStoreUserOwner,
     getWaitingRoomTokenFromHeader,
 };

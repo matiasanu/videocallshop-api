@@ -30,5 +30,10 @@ router.delete(
     authenticationCtrl.isClientOwnerOrStoreUserOwner,
     waitingRoomCtrl.removeClient
 );
+router.delete(
+    '/store/:storeId/waiting-room',
+    authenticationCtrl.isStoreUserOwner,
+    waitingRoomCtrl.removeAll
+);
 
 module.exports = router;
