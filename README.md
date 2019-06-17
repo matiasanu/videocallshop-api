@@ -1,13 +1,13 @@
 # videocallshop API
 
 ## public tools and resources
-- `BASE_URL`/videocallshop-api.json
+### `BASE_URL`/videocallshop-api.json
 JSON with API methods definitions for `Advanced REST client` (https://install.advancedrestclient.com/install).
 
-- `BASE_URL`/client.html
+### `BASE_URL`/client.html
 Tool to enter in a waiting room as a client.
 
-- `BASE_URL`/store.html
+### `BASE_URL`/store.html
 Tool to loggin as a store user and watch the queue.
 
 ## API methods
