@@ -28,13 +28,13 @@ router.get(
 router.get(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
     authenticationCtrl.isClientInQueueOrStoreUserOwner,
-    waitingRoomCtrl.isRequestFromStoreMiddleware,
+    waitingRoomCtrl.isValidRequest,
     waitingRoomCtrl.getResquest
 );
 router.delete(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
     authenticationCtrl.isClientOwnerOrStoreUserOwner,
-    waitingRoomCtrl.isRequestFromStoreMiddleware,
+    waitingRoomCtrl.isValidRequest,
     waitingRoomCtrl.removeClient
 );
 router.delete(

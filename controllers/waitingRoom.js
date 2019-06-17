@@ -129,7 +129,7 @@ const getResquest = async (req, res, next) => {
     }
 };
 
-const isRequestFromStoreMiddleware = async (req, res, next) => {
+const isValidRequest = async (req, res, next) => {
     let { storeId, waitingRoomRequestId } = req.params;
     waitingRoomRequestId = parseInt(waitingRoomRequestId);
     storeId = parseInt(storeId);
@@ -296,7 +296,7 @@ module.exports = {
     removeAll,
     getWaitingRoom,
     getResquest,
-    isRequestFromStoreMiddleware,
+    isValidRequest,
     socketMiddleware,
     socketConnection,
 };
