@@ -4,7 +4,7 @@ const express = require('express');
 const pool = require('./helpers/postgres');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
-const expressSession = require('express-session');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 
 // helpers, controllers & models
@@ -23,11 +23,14 @@ app.use(express.static('public'));
 app.use(cookieParser());
 app.use(
     //ToDo Implement postgresql for sessions
-    expressSession({
-        //ToDo Check session options
+    session({
+        store: new (require('connect-pg-simple')(session))(),
         secret: 'max',
         saveUninitialized: false,
         resave: false,
+        cookie: {
+            magAge: 604800000, //a week
+        },
     })
 );
 app.use('/', routes);

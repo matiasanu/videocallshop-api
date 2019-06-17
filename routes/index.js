@@ -22,12 +22,11 @@ router.get('/store/:storeId', storeCtrl.getStore);
 router.post('/waiting-room/:storeId', waitingRoomCtrl.pushClient);
 router.get(
     '/waiting-room/:storeId',
-    authenticationCtrl.isClientOrStoreUser,
+    authenticationCtrl.isSameUserOrStoreUserOwner,
     waitingRoomCtrl.getWaitingRoom
 );
 router.delete(
     '/waiting-room/:storeId/:waitingRoomRequestId',
-    authenticationCtrl.isClientOrStoreUser,
     authenticationCtrl.isSameUserOrStoreUserOwner,
     waitingRoomCtrl.removeClient
 );
