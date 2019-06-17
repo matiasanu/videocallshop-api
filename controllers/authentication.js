@@ -20,10 +20,8 @@ const hasWaitingRoomToken = req => {
 
     try {
         req.waitingRoomJwtDecoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('hasWaitingRoomToken', 'SI');
         return true;
     } catch (err) {
-        console.log('hasWaitingRoomToken', 'NO');
         return false;
     }
 };
@@ -85,7 +83,7 @@ const isClientOrStoreUser = async (req, res, next) => {
         return next(err);
     }
 };
-const isSameUserOrStoreUserOwner = async (req, res, next) => {
+const isClientInQueueOrStoreUserOwner = async (req, res, next) => {
     const storeId = req.params.storeId || req.body.storeId;
 
     const isAnAuthenticatedUserStore = isAuthenticatedUserStore(req);
@@ -106,10 +104,55 @@ const isSameUserOrStoreUserOwner = async (req, res, next) => {
     if (hasAWaitingRoomToken) {
         console.log('hasAWaitingRoomToken', 'YES');
         if (parseInt(req.waitingRoomJwtDecoded.storeId) === parseInt(storeId)) {
-            console.log('isSameUser', 'YES');
+            console.log('isInQueue', 'YES');
             return next();
         } else {
-            console.log('isSameUser', 'NO');
+            console.log('isInQueue', 'NO');
+        }
+    } else {
+        console.log('hasAWaitingRoomToken', 'NO');
+    }
+
+    const err = new Error('Unauthorized.');
+    err.status = 401;
+    return next(err);
+};
+
+const isClientOwnerOrStoreUserOwner = async (req, res, next) => {
+    const storeId = req.params.storeId || req.body.storeId;
+    const waitingRoomRequestId =
+        req.params.waitingRoomRequestId || req.body.waitingRoomRequestId;
+
+    const isAnAuthenticatedUserStore = isAuthenticatedUserStore(req);
+    if (isAnAuthenticatedUserStore) {
+        console.log('isAnAuthenticatedUserStore: ', 'YES');
+        const user = req.session.user;
+        if (parseInt(user.storeId) === parseInt(storeId)) {
+            console.log('isStoreUserOwner: ', 'YES');
+            return next();
+        } else {
+            console.log('isStoreUserOwner: ', 'NO');
+        }
+    } else {
+        console.log('isAnAuthenticatedUserStore: ', 'NO');
+    }
+
+    const hasAWaitingRoomToken = hasWaitingRoomToken(req);
+    if (hasAWaitingRoomToken) {
+        console.log('hasAWaitingRoomToken', 'YES');
+        if (parseInt(req.waitingRoomJwtDecoded.storeId) === parseInt(storeId)) {
+            console.log('isInQueue', 'YES');
+            if (
+                parseInt(req.waitingRoomJwtDecoded.waitingRoomRequestId) ===
+                parseInt(waitingRoomRequestId)
+            ) {
+                console.log('isClientOwner', 'YES');
+                return next();
+            } else {
+                console.log('isClientOwner', 'NO');
+            }
+        } else {
+            console.log('isInQueue', 'NO');
         }
     } else {
         console.log('hasAWaitingRoomToken', 'NO');
@@ -123,6 +166,7 @@ const isSameUserOrStoreUserOwner = async (req, res, next) => {
 module.exports = {
     authenticateUserStore,
     isClientOrStoreUser,
-    isSameUserOrStoreUserOwner,
+    isClientInQueueOrStoreUserOwner,
+    isClientOwnerOrStoreUserOwner,
     getWaitingRoomTokenFromHeader,
 };
