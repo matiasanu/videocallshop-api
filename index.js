@@ -1,7 +1,6 @@
 // third libraries
 require('dotenv').config();
 const express = require('express');
-const pool = require('./helpers/postgres');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -24,7 +23,7 @@ app.use(cookieParser());
 app.use(
     session({
         store: new (require('connect-pg-simple')(session))(),
-        secret: 'max',
+        secret: process.env.SESSION_SECRET,
         saveUninitialized: false,
         resave: false,
         cookie: {
