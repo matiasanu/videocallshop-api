@@ -89,29 +89,6 @@ const pushClient = async (req, res, next) => {
 const removeClient = async (req, res, next) => {
     try {
         let { storeId, waitingRoomRequestId } = req.params;
-        waitingRoomRequestId = parseInt(waitingRoomRequestId);
-        storeId = parseInt(storeId);
-
-        // check request
-        const requests = await waitingRoomModel.getRequest(
-            waitingRoomRequestId
-        );
-
-        if (!requests.length) {
-            // request not founded
-            const err = new Error('Request is not exist.');
-            err.status = 500;
-            return next(err);
-        }
-
-        const request = requests[0];
-
-        if (request.storeId !== storeId) {
-            // The request is not from this store
-            const err = new Error('The request is not from this store');
-            err.status = 500;
-            return next(err);
-        }
 
         const clientsAffected = await waitingRoomModel.removeClient(
             waitingRoomRequestId,
@@ -133,6 +110,50 @@ const removeClient = async (req, res, next) => {
         err.status = 500;
         return next(err);
     }
+};
+
+const getResquest = async (req, res, next) => {
+    try {
+        let { waitingRoomRequestId } = req.params;
+
+        const requests = await waitingRoomModel.getRequest(
+            waitingRoomRequestId
+        );
+
+        const status = 200;
+        res.status(status);
+        res.send({ status, data: requests[0] });
+    } catch (err) {
+        err.status = 500;
+        return next(err);
+    }
+};
+
+const isRequestFromStoreMiddleware = async (req, res, next) => {
+    let { storeId, waitingRoomRequestId } = req.params;
+    waitingRoomRequestId = parseInt(waitingRoomRequestId);
+    storeId = parseInt(storeId);
+
+    // check request
+    const requests = await waitingRoomModel.getRequest(waitingRoomRequestId);
+
+    if (!requests.length) {
+        // request not founded
+        const err = new Error('Request is not exist.');
+        err.status = 500;
+        return next(err);
+    }
+
+    const request = requests[0];
+
+    if (request.storeId !== storeId) {
+        // The request is not from this store
+        const err = new Error('The request is not from this store');
+        err.status = 500;
+        return next(err);
+    }
+
+    next();
 };
 
 const removeAll = async (req, res, next) => {
@@ -274,6 +295,8 @@ module.exports = {
     removeClient,
     removeAll,
     getWaitingRoom,
+    getResquest,
+    isRequestFromStoreMiddleware,
     socketMiddleware,
     socketConnection,
 };

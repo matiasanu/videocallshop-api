@@ -25,9 +25,16 @@ router.get(
     authenticationCtrl.isClientInQueueOrStoreUserOwner,
     waitingRoomCtrl.getWaitingRoom
 );
+router.get(
+    '/store/:storeId/waiting-room/:waitingRoomRequestId',
+    authenticationCtrl.isClientInQueueOrStoreUserOwner,
+    waitingRoomCtrl.isRequestFromStoreMiddleware,
+    waitingRoomCtrl.getResquest
+);
 router.delete(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
     authenticationCtrl.isClientOwnerOrStoreUserOwner,
+    waitingRoomCtrl.isRequestFromStoreMiddleware,
     waitingRoomCtrl.removeClient
 );
 router.delete(
