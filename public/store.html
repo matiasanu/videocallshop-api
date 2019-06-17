@@ -36,6 +36,7 @@
             { email, password }, // params
             (response, textStatus, request) => { // callback
                 const storeId = response.data.storeId;
+                $("#storeId").html(storeId);
 
                 var socket = io(
                     '?storeId='+ storeId,
@@ -64,7 +65,8 @@
                 });
             }
         ).fail(function(response) {
-            alert( response.statusText );
+            console.log(response);
+            alert( response.responseJSON.message );
         });
 
     });

@@ -82,8 +82,10 @@
                     renderWaitingRoom(waitingRoom);
                 });
             }
-        );
-
+        ).fail(function(response) {
+            console.log(response);
+            alert( response.responseJSON.message );
+        });
     });
 </script>
 <html>
