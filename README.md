@@ -2,7 +2,7 @@
 
 ## public tools and resources
 ### `BASE_URL`/videocallshop-api.json
-JSON with API methods definitions for `Advanced REST client` (https://install.advancedrestclient.com/install).
+JSON with API method definitions for `Advanced REST client` (https://install.advancedrestclient.com/install).
 
 ### `BASE_URL`/client.html
 Tool to enter in a waiting room as a client.
