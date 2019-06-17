@@ -19,14 +19,14 @@ router.get('/store', storeCtrl.getStores);
 router.get('/store/:storeId', storeCtrl.getStore);
 
 // waiting room
-router.post('/waiting-room/:storeId', waitingRoomCtrl.pushClient);
+router.post('/store/:storeId/waiting-room', waitingRoomCtrl.pushClient);
 router.get(
-    '/waiting-room/:storeId',
+    '/store/:storeId/waiting-room',
     authenticationCtrl.isSameUserOrStoreUserOwner,
     waitingRoomCtrl.getWaitingRoom
 );
 router.delete(
-    '/waiting-room/:storeId/:waitingRoomRequestId',
+    '/store/:storeId/waiting-room/:waitingRoomRequestId',
     authenticationCtrl.isSameUserOrStoreUserOwner,
     waitingRoomCtrl.removeClient
 );

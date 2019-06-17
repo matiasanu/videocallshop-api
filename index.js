@@ -20,7 +20,6 @@ const bodyParser = require('body-parser');
 // helpers, controllers & models
 const initRedisCli = require('./helpers/redis');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
-const authenticationCtrl = require('./controllers/authentication');
 const storeModel = require('./models/store');
 
 const routes = require('./routes/index');
