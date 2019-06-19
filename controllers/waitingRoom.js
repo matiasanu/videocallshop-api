@@ -112,6 +112,8 @@ const removeClient = async (req, res, next) => {
     }
 };
 
+const callClient = async (req, res, next) => {};
+
 const getResquest = async (req, res, next) => {
     try {
         let { waitingRoomRequestId } = req.params;
@@ -299,4 +301,5 @@ module.exports = {
     isValidRequest,
     socketMiddleware,
     socketConnection,
+    callClient,
 };

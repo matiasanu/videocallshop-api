@@ -21,6 +21,7 @@ router.post(
 
 // store
 router.get('/store', storeCtrl.getStores);
+
 router.get(
     '/store/:storeId',
     [check('storeId').isInt()],
@@ -40,6 +41,7 @@ router.post(
     validatorCtrl.validateParams,
     waitingRoomCtrl.pushClient
 );
+
 router.get(
     '/store/:storeId/waiting-room',
     [check('storeId').isInt()],
@@ -47,6 +49,16 @@ router.get(
     authenticationCtrl.isClientInQueueOrStoreUserOwner,
     waitingRoomCtrl.getWaitingRoom
 );
+
+router.delete(
+    '/store/:storeId/waiting-room',
+    [check('storeId').isInt()],
+    validatorCtrl.validateParams,
+    authenticationCtrl.isStoreUserOwner,
+    waitingRoomCtrl.removeAll
+);
+
+// waiting room request
 router.get(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
     [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
@@ -55,6 +67,7 @@ router.get(
     waitingRoomCtrl.isValidRequest,
     waitingRoomCtrl.getResquest
 );
+
 router.delete(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
     [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
@@ -63,12 +76,14 @@ router.delete(
     waitingRoomCtrl.isValidRequest,
     waitingRoomCtrl.removeClient
 );
-router.delete(
-    '/store/:storeId/waiting-room',
-    [check('storeId').isInt()],
+
+router.post(
+    '/store/:storeId/waiting-room/:waitingRoomRequestId',
+    [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
     validatorCtrl.validateParams,
     authenticationCtrl.isStoreUserOwner,
-    waitingRoomCtrl.removeAll
+    waitingRoomCtrl.isValidRequest,
+    waitingRoomCtrl.callClient
 );
 
 module.exports = router;
