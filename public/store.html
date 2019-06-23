@@ -23,30 +23,32 @@
     };
 
     const getRequestDataFromApi = (requestId, callback) => {
-        $.get({
+        return $.get({
                 url: '/store/' + storeId + '/waiting-room/' + requestId
-            },
-            (response, textStatus, request) => {
-                //Store the request
-                const requestData = response.data;
-                requests[requestData.waitingRoomRequestId] = requestData;
-                updateRequestLabel(requestData);
             }
-
         );
     };
 
     const renderWaitingRoom = waitingRoom => {
-        // destroy the waiting room
+        // restart the waiting room
         $("#waitingRoom").html("");
 
         // iterate each requestId
         $.each(waitingRoom, (index, requestId) => {
+            // append element with "loading..." state
             $("#waitingRoom").append('<p id="' + requestId + '">' + requestId + ' - ' + 'loading...' + '</p>');
 
+            // get request from memory
             var request = requests[requestId];
             if(!request) {
-                getRequestDataFromApi(requestId);
+                // request from memory not found, get from api
+                getRequestDataFromApi(requestId)
+                    .then(response => {
+                        //Store the request
+                        const requestData = response.data;
+                        requests[requestData.waitingRoomRequestId] = requestData;
+                        updateRequestLabel(requestData);
+                    });
             } else {
                 updateRequestLabel(request);
             }
