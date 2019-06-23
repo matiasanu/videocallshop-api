@@ -2,6 +2,13 @@
 <script src="js/jquery-3.4.1.min.js"></script>
 
 <script>
+    var requests = [];
+    var token = null;
+    var storeId = null;
+    var email = null;
+    var name = null;
+    var lastName = null;
+
     function getJsonFromUrl(url) {
         if(!url) url = location.search;
         var query = url.substr(1);
@@ -13,20 +20,52 @@
         return result;
     }
 
+    const updateRequestLabel = (request) => {
+        const label = request.waitingRoomRequestId + ' - ' + request.name + ' ' + request.lastName + ' - ' + request.email;
+        $("#" + request.waitingRoomRequestId).html(label);
+    };
+
+    const getRequestDataFromApi = (requestId, callback) => {
+        $.get({
+                url: '/store/' + storeId + '/waiting-room/' + requestId,
+                beforeSend: function(request) {
+                    request.setRequestHeader("Authorization", token);
+                },
+            },
+            (response, textStatus, request) => {
+                //Store the request
+                const requestData = response.data;
+                requests[requestData.waitingRoomRequestId] = requestData;
+                updateRequestLabel(requestData);
+            }
+
+        );
+    };
+
     const renderWaitingRoom = waitingRoom => {
+        // destroy the waiting room
         $("#waitingRoom").html("");
-        $.each(waitingRoom, (index, client) => {
-            $("#waitingRoom").append('<p>' + client + '</p>');
+
+        // iterate each requestId
+        $.each(waitingRoom, (index, requestId) => {
+            $("#waitingRoom").append('<p id="' + requestId + '">' + requestId + ' - ' + 'loading...' + '</p>');
+
+            var request = requests[requestId];
+            if(!request) {
+                getRequestDataFromApi(requestId);
+            } else {
+                updateRequestLabel(request);
+            }
         });
     };
 
     $( document ).ready(function() {
         var params = getJsonFromUrl();
 
-        var storeId = params.storeId;
-        var email = params.email;
-        var name = params.name;
-        var lastName = params.lastName;
+        storeId = params.storeId;
+        email = params.email;
+        name = params.name;
+        lastName = params.lastName;
 
         if(!storeId || !email || !name || !lastName) {
             $('#invalidParams').show();
@@ -40,7 +79,7 @@
             '/store/' + storeId + '/waiting-room', // url
             { email, name, lastName }, // params
             (response, textStatus, request) => { // callback
-                const token = request.getResponseHeader('Authorization');
+                token = request.getResponseHeader('Authorization');
                 $("#token").html(token);
 
                 const waitingRoomRequestId = response.data.waitingRoomRequestId;
@@ -72,7 +111,6 @@
                 });
 
                 socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
-                    console.log(waitingRoom);
                     console.log('WAITING_ROOM_SENDED',  waitingRoom);
                     renderWaitingRoom(waitingRoom);
                 });

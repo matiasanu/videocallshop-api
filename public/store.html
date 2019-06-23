@@ -2,6 +2,10 @@
 <script src="js/jquery-3.4.1.min.js"></script>
 
 <script>
+    var requests = [];
+
+    var storeId;
+
     function getJsonFromUrl(url) {
         if(!url) url = location.search;
         var query = url.substr(1);
@@ -13,10 +17,39 @@
         return result;
     }
 
+    const updateRequestLabel = (request) => {
+        const label = request.waitingRoomRequestId + ' - ' + request.name + ' ' + request.lastName + ' - ' + request.email;
+        $("#" + request.waitingRoomRequestId).html(label);
+    };
+
+    const getRequestDataFromApi = (requestId, callback) => {
+        $.get({
+                url: '/store/' + storeId + '/waiting-room/' + requestId
+            },
+            (response, textStatus, request) => {
+                //Store the request
+                const requestData = response.data;
+                requests[requestData.waitingRoomRequestId] = requestData;
+                updateRequestLabel(requestData);
+            }
+
+        );
+    };
+
     const renderWaitingRoom = waitingRoom => {
+        // destroy the waiting room
         $("#waitingRoom").html("");
-        $.each(waitingRoom, (index, client) => {
-            $("#waitingRoom").append('<p>' + client + '</p>');
+
+        // iterate each requestId
+        $.each(waitingRoom, (index, requestId) => {
+            $("#waitingRoom").append('<p id="' + requestId + '">' + requestId + ' - ' + 'loading...' + '</p>');
+
+            var request = requests[requestId];
+            if(!request) {
+                getRequestDataFromApi(requestId);
+            } else {
+                updateRequestLabel(request);
+            }
         });
     };
 
@@ -35,7 +68,7 @@
             '/authentication/store', // url
             { email, password }, // params
             (response, textStatus, request) => { // callback
-                const storeId = response.data.storeId;
+                storeId = response.data.storeId;
                 $("#storeId").html(storeId);
 
                 var socket = io(
@@ -54,7 +87,6 @@
                 });
 
                 socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
-                    console.log(waitingRoom);
                     console.log('WAITING_ROOM_SENDED',  waitingRoom);
                     renderWaitingRoom(waitingRoom);
                 });
