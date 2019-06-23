@@ -51,6 +51,7 @@
                 getRequestDataFromApi(requestId)
                     .then(response => {
                         const requestData = response.data;
+                        // store request fetched on memory
                         requests[requestData.waitingRoomRequestId] = requestData;
                         updateRequestLabel(requestData);
                     });

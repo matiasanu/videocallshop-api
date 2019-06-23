@@ -44,8 +44,8 @@
                 // request from memory not found, get from api
                 getRequestDataFromApi(requestId)
                     .then(response => {
-                        //Store the request
                         const requestData = response.data;
+                        // store request fetched on memory
                         requests[requestData.waitingRoomRequestId] = requestData;
                         updateRequestLabel(requestData);
                     });
