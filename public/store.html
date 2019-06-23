@@ -54,6 +54,13 @@
     };
 
     $( document ).ready(function() {
+        $("#removeAllBtn").click(() => {
+            $.ajax({
+                url: '/store/' +storeId + '/waiting-room', // url
+                type: 'DELETE'
+            });
+        });
+
         var params = getJsonFromUrl();
         var email = params.email;
         var password = params.password;
@@ -70,6 +77,7 @@
             (response, textStatus, request) => { // callback
                 storeId = response.data.storeId;
                 $("#storeId").html(storeId);
+                $("#removeAllBtn").show();
 
                 var socket = io(
                     '?storeId='+ storeId,
@@ -116,6 +124,7 @@
         <p id="email"></p>
 
         <h1>COLA</h1>
+        <button id="removeAllBtn" style="display: none;">Eliminar Todos</button>
         <p><span id="waitingRoom"></span></p>
     </body>
 </html>
