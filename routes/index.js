@@ -7,6 +7,7 @@ const authenticationCtrl = require('../controllers/authentication');
 const validatorCtrl = require('../controllers/validator');
 const storeCtrl = require('../controllers/store');
 const waitingRoomCtrl = require('../controllers/waitingRoom');
+const callCtrl = require('../controllers/call');
 
 // hello
 router.get('/', ({ res }) => res.send('videocallshop-api available'));
@@ -74,16 +75,19 @@ router.delete(
     validatorCtrl.validateParams,
     authenticationCtrl.isClientOwnerOrStoreUserOwner,
     waitingRoomCtrl.isValidRequest,
+    waitingRoomCtrl.isInQueue,
     waitingRoomCtrl.removeClient
 );
 
+// calls
 router.post(
-    '/store/:storeId/waiting-room/:waitingRoomRequestId',
+    '/store/:storeId/calls',
     [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
     validatorCtrl.validateParams,
     authenticationCtrl.isStoreUserOwner,
     waitingRoomCtrl.isValidRequest,
-    waitingRoomCtrl.callClient
+    waitingRoomCtrl.isInQueue,
+    callCtrl.callClient
 );
 
 module.exports = router;

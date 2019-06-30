@@ -16,6 +16,7 @@ let redisCli = null;
 const REQUESTED = 'REQUESTED';
 const IN = 'IN';
 const REMOVED = 'REMOVED';
+const CALLED = 'CALLED';
 
 const pushClient = async (req, res, next) => {
     try {
@@ -112,11 +113,9 @@ const removeClient = async (req, res, next) => {
     }
 };
 
-const callClient = async (req, res, next) => {};
-
 const getResquest = async (req, res, next) => {
     try {
-        let { waitingRoomRequestId } = req.params;
+        const { waitingRoomRequestId } = req.body;
 
         const requests = await waitingRoomModel.getRequest(
             waitingRoomRequestId
@@ -132,7 +131,9 @@ const getResquest = async (req, res, next) => {
 };
 
 const isValidRequest = async (req, res, next) => {
-    let { storeId, waitingRoomRequestId } = req.params;
+    let { storeId } = req.params;
+    let waitingRoomRequestId =
+        req.params.waitingRoomRequestId || req.body.waitingRoomRequestId;
     waitingRoomRequestId = parseInt(waitingRoomRequestId);
     storeId = parseInt(storeId);
 
@@ -152,6 +153,30 @@ const isValidRequest = async (req, res, next) => {
         // The request is not from this store
         const err = new Error('The request is not from this store');
         err.status = 500;
+        return next(err);
+    }
+
+    next();
+};
+
+const isInQueue = async (req, res, next) => {
+    let { storeId } = req.params;
+    let waitingRoomRequestIdFromReq =
+        req.params.waitingRoomRequestId || req.body.waitingRoomRequestId;
+
+    const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+
+    let onQueue = false;
+    for (const waitingRoomRequestId of waitingRoom) {
+        if (waitingRoomRequestId === waitingRoomRequestIdFromReq) {
+            onQueue = true;
+        }
+    }
+
+    if (!onQueue) {
+        // The request is not from this store
+        const err = new Error('The client is not on queue');
+        err.status = 401;
         return next(err);
     }
 
@@ -219,6 +244,19 @@ const getWaitingRoom = async (req, res, next) => {
     } catch (err) {
         err.status = 500;
         return next(err);
+    }
+};
+
+const setRequestCalled = async (storeId, waitingRoomRequestId) => {
+    await waitingRoomModel.setState(waitingRoomRequestId, CALLED);
+
+    const clientsAffected = await waitingRoomModel.removeClient(
+        waitingRoomRequestId,
+        storeId
+    );
+
+    if (clientsAffected) {
+        await broadcastWaitingRoom();
     }
 };
 
@@ -301,5 +339,6 @@ module.exports = {
     isValidRequest,
     socketMiddleware,
     socketConnection,
-    callClient,
+    setRequestCalled,
+    isInQueue,
 };

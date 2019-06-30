@@ -77,3 +77,4 @@ Empty queue.
 
 ###### Auth
 isStoreUserOwner
+isInQueue
