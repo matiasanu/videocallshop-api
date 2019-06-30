@@ -115,7 +115,7 @@ const removeClient = async (req, res, next) => {
 
 const getResquest = async (req, res, next) => {
     try {
-        const { waitingRoomRequestId } = req.body;
+        const { waitingRoomRequestId } = req.params;
 
         const requests = await waitingRoomModel.getRequest(
             waitingRoomRequestId
