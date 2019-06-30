@@ -78,3 +78,22 @@ Empty queue.
 ###### Auth
 isStoreUserOwner
 isInQueue
+
+### `POST` - `/store/:storeId/calls`
+Call to a client.
+
+###### Params
+- waitingRoomRequestId
+
+###### Auth
+isStoreUserOwner
+isInQueue
+
+### `POST` - `/store/:storeId/calls/:callId`
+Get a call.
+
+###### Params
+- waitingRoomRequestId
+
+###### Auth
+isClientOwnerOrStoreUserOwner
