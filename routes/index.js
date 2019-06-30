@@ -90,4 +90,13 @@ router.post(
     callCtrl.callClient
 );
 
+router.get(
+    '/store/:storeId/calls/:callId',
+    [check('storeId').isInt(), check('callId').isInt()],
+    validatorCtrl.validateParams,
+    authenticationCtrl.isClientOwnerOrStoreUserOwner,
+    callCtrl.isValidCall,
+    callCtrl.getCall
+);
+
 module.exports = router;

@@ -152,7 +152,7 @@ const isValidRequest = async (req, res, next) => {
     if (request.storeId !== storeId) {
         // The request is not from this store
         const err = new Error('The request is not from this store');
-        err.status = 500;
+        err.status = 401;
         return next(err);
     }
 

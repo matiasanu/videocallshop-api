@@ -2,6 +2,21 @@ var OpenTok = require('opentok');
 
 const waitingRoomCtrl = require('../controllers/waitingRoom');
 const callModel = require('../models/call');
+const waitingRoomModel = require('../models/waitingRoom');
+
+const getCall = async (req, res, next) => {
+    try {
+        const { callId } = req.params;
+        const calls = await callModel.getCall(callId);
+
+        const status = 200;
+        res.status(status);
+        res.send({ status, data: calls[0] });
+    } catch (err) {
+        err.status = 500;
+        return next(err);
+    }
+};
 
 const callClient = async (req, res, next) => {
     const { storeId } = req.params;
@@ -48,6 +63,40 @@ const callClient = async (req, res, next) => {
     });
 };
 
+const isValidCall = async (req, res, next) => {
+    let { storeId } = req.params;
+    let callId = req.params.callId || req.body.callId;
+    callId = parseInt(callId);
+    storeId = parseInt(storeId);
+
+    // check call
+    const calls = await callModel.getCall(callId);
+
+    if (!calls.length) {
+        // call not founded
+        const err = new Error('Call is not exist.');
+        err.status = 500;
+        return next(err);
+    }
+
+    const call = calls[0];
+    const { waitingRoomRequestId } = call;
+
+    const requests = await waitingRoomModel.getRequest(waitingRoomRequestId);
+    request = requests[0];
+
+    if (request.storeId !== storeId) {
+        // The request is not from this store
+        const err = new Error('The call is not from this store');
+        err.status = 401;
+        return next(err);
+    }
+
+    next();
+};
+
 module.exports = {
     callClient,
+    getCall,
+    isValidCall,
 };
