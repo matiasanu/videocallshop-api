@@ -34,6 +34,8 @@ const callClient = async (req, res, next) => {
                     storeUserId
                 );
 
+                //ToDo: Implement push notifications
+
                 const status = 200;
                 res.status(status);
                 res.send({ status, data: { tokboxSessionId, callId } });
