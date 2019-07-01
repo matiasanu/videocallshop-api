@@ -18,6 +18,53 @@ const IN = 'IN';
 const REMOVED = 'REMOVED';
 const CALLED = 'CALLED';
 
+const _isRequestOnQueue = async (storeId, waitingRoomRequestId) => {
+    const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
+
+    for (const waitingRoomRequestIdOnQueue of waitingRoom) {
+        console.log(
+            'COMPARING ',
+            waitingRoomRequestIdOnQueue,
+            waitingRoomRequestId
+        );
+        if (
+            parseInt(waitingRoomRequestId) ==
+            parseInt(waitingRoomRequestIdOnQueue)
+        ) {
+            return true;
+        }
+    }
+
+    console.log('devuelve false');
+
+    return false;
+};
+
+const _getWaitingRoomTokenFromHeader = header => {
+    if (header.startsWith('Bearer ')) {
+        // Remove Bearer from string
+        return header.slice(7, header.length);
+    }
+
+    return header;
+};
+
+const _getWaitingRoomToken = req => {
+    let header = req.headers['x-access-token'] || req.headers['authorization']; // Express headers are auto converted to lowercase
+
+    if (!header) {
+        return false;
+    }
+
+    const token = _getWaitingRoomTokenFromHeader(header);
+
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        return false;
+    }
+};
+
 const pushClient = async (req, res, next) => {
     try {
         const { name, lastName, email } = req.body;
@@ -130,59 +177,6 @@ const getResquest = async (req, res, next) => {
     }
 };
 
-const isValidRequest = async (req, res, next) => {
-    let { storeId } = req.params;
-    let waitingRoomRequestId =
-        req.params.waitingRoomRequestId || req.body.waitingRoomRequestId;
-    waitingRoomRequestId = parseInt(waitingRoomRequestId);
-    storeId = parseInt(storeId);
-
-    // check request
-    const requests = await waitingRoomModel.getRequest(waitingRoomRequestId);
-
-    if (!requests.length) {
-        // request not founded
-        const err = new Error('Request is not exist.');
-        err.status = 500;
-        return next(err);
-    }
-
-    const request = requests[0];
-
-    if (request.storeId !== storeId) {
-        // The request is not from this store
-        const err = new Error('The request is not from this store');
-        err.status = 401;
-        return next(err);
-    }
-
-    next();
-};
-
-const isInQueue = async (req, res, next) => {
-    let { storeId } = req.params;
-    let waitingRoomRequestIdFromReq =
-        req.params.waitingRoomRequestId || req.body.waitingRoomRequestId;
-
-    const waitingRoom = await waitingRoomModel.getWaitingRoom(storeId);
-
-    let onQueue = false;
-    for (const waitingRoomRequestId of waitingRoom) {
-        if (waitingRoomRequestId === waitingRoomRequestIdFromReq) {
-            onQueue = true;
-        }
-    }
-
-    if (!onQueue) {
-        // The request is not from this store
-        const err = new Error('The client is not on queue');
-        err.status = 401;
-        return next(err);
-    }
-
-    next();
-};
-
 const removeAll = async (req, res, next) => {
     try {
         let { storeId } = req.params;
@@ -192,14 +186,10 @@ const removeAll = async (req, res, next) => {
         let clientsRemoved = 0;
 
         for (const waitingRoomRequestId of waitingRoom) {
-            console.log('ATTEMPT DELETE', waitingRoomRequestId);
-            console.log('FROM', storeId);
             const clientsAffected = await waitingRoomModel.removeClient(
                 waitingRoomRequestId,
                 storeId
             );
-
-            console.log('CLIENTS AFFECTED', clientsAffected);
 
             if (clientsAffected) {
                 clientsRemoved++;
@@ -278,7 +268,7 @@ const socketMiddleware = async (socket, next) => {
         // user store
         try {
             if (
-                parseInt(socket.handshake.session.user.storeId) ===
+                parseInt(socket.handshake.session.storeUser.storeId) ===
                 parseInt(storeId)
             ) {
                 authorized = true;
@@ -331,14 +321,14 @@ const socketConnection = async socket => {
 };
 
 module.exports = {
+    _isRequestOnQueue,
+    _getWaitingRoomToken,
     pushClient,
     removeClient,
     removeAll,
     getWaitingRoom,
     getResquest,
-    isValidRequest,
     socketMiddleware,
     socketConnection,
     setRequestCalled,
-    isInQueue,
 };

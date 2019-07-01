@@ -42,7 +42,7 @@ const callClient = async (req, res, next) => {
                     waitingRoomRequestId
                 );
 
-                const storeUserId = req.session.user.storeUserId;
+                const storeUserId = req.session.storeUser.storeUserId;
                 const callId = await callModel.registerCall(
                     waitingRoomRequestId,
                     tokboxSessionId,
