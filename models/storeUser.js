@@ -6,7 +6,7 @@ const getUserByEmail = async email => {
             `SELECT * FROM store_users u WHERE u.email='${email}' LIMIT 1;`
         );
 
-        return result.rows;
+        return result.rows.length ? result.rows[0] : null;
     } catch (err) {
         console.log('ERROR query getUserByEmail');
         throw new Error(err.message);

@@ -1,12 +1,86 @@
 const initRedisCli = require('../helpers/redis');
 const pool = require('../helpers/postgres');
 
+// models
+const waitingRoomModel = require('./waitingRoom');
+const callRequestModel = require('./callRequest');
+const storeModel = require('./store');
+
 let redisCli = null;
 
 (async () => {
     redisCli = await initRedisCli();
 })();
 
+const getWaitingRooms = async () => {
+    // assume we have one-to-one stores and waiting rooms relationship
+    const stores = await storeModel.getStores();
+    const waitingRooms = stores.map(store => {
+        return {
+            waitingRoomId: `waitingRoom${store.storeId}`,
+            storeId: store.storeId,
+        };
+    });
+
+    return waitingRooms;
+};
+
+const getWaitingRoomByStoreId = async storeId => {
+    const waitingRooms = await getWaitingRooms();
+    let waitingRoomFounded = null;
+    for (const waitingRoom of waitingRooms) {
+        if (waitingRoom.storeId === storeId) {
+            waitingRoomFounded = waitingRoom;
+        }
+    }
+
+    return waitingRoomFounded;
+};
+
+const getQueue = async waitingRoomId => {
+    const waitingRoom = await redisCli
+        .multi()
+        .lrange(waitingRoomId, 0, -1)
+        .execAsync();
+
+    return waitingRoom[0];
+};
+
+const pushCallRequestInQueue = async (waitingRoomId, callRequestId) => {
+    try {
+        let result = await redisCli
+            .multi()
+            .rpush(waitingRoomId, callRequestId)
+            .execAsync();
+        listLength = result[0];
+
+        return listLength;
+    } catch (err) {
+        throw err;
+    }
+};
+
+const findCallRequestInQueue = async email => {
+    const waitingRooms = await getWaitingRooms();
+    let callRequestFounded = null;
+
+    for await (const waitingRoom of waitingRooms) {
+        const queue = await getQueue(waitingRoom.waitingRoomId);
+        for await (const callRequestId of queue) {
+            const callRequest = await callRequestModel.getCallRequest(
+                callRequestId
+            );
+
+            if (callRequest.email === email) {
+                callRequestFounded = callRequest;
+            }
+        }
+    }
+
+    return callRequestFounded;
+};
+
+//ToDo: Remove
 const addRequest = async (storeId, email, name, lastName) => {
     try {
         const now = new Date().toISOString();
@@ -115,6 +189,9 @@ const setState = async (waitingRoomRequestId, state) => {
 };
 
 module.exports = {
+    findCallRequestInQueue,
+    getWaitingRoomByStoreId,
+    pushCallRequestInQueue,
     getRequest,
     addRequest,
     pushClient,

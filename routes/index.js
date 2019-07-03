@@ -3,11 +3,17 @@ const router = express.Router();
 
 const { check } = require('express-validator/check');
 
+// controllers
 const authenticationCtrl = require('../controllers/authentication');
-const validatorCtrl = require('../controllers/validator');
 const storeCtrl = require('../controllers/store');
 const waitingRoomCtrl = require('../controllers/waitingRoom');
 const callCtrl = require('../controllers/call');
+const callRequestCtrl = require('../controllers/callRequest');
+
+// middlewares
+const storeMidd = require('../middlewares/store');
+const authorizationMidd = require('../middlewares/authorization');
+const paramsValidatorMidd = require('../middlewares/paramsValidator');
 
 // hello
 router.get('/', ({ res }) => res.send('videocallshop-api available'));
@@ -16,45 +22,49 @@ router.get('/', ({ res }) => res.send('videocallshop-api available'));
 router.post(
     '/authentication/store',
     [check('email').isEmail()],
-    validatorCtrl.validateParams,
-    authenticationCtrl.authenticateUserStore
+    paramsValidatorMidd.validateParams,
+    authenticationCtrl.authenticateStoreUser
 );
 
-// store
-router.get('/store', storeCtrl.getStores);
+// stores
+router.get('/stores', storeCtrl.getStores);
 
 router.get(
-    '/store/:storeId',
+    '/stores/:storeId',
     [check('storeId').isInt()],
-    validatorCtrl.validateParams,
+    paramsValidatorMidd.validateParams,
     storeCtrl.getStore
 );
 
-// waiting room
+// call requests
 router.post(
-    '/store/:storeId/waiting-room',
+    '/stores/:storeId/call-requests',
     [
         check('storeId').isInt(),
         check('email').isEmail(),
         check('name').matches(/^[a-z ]+$/i),
         check('lastName').matches(/^[a-z ]+$/i),
     ],
-    validatorCtrl.validateParams,
-    waitingRoomCtrl.pushClient
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestCtrl.createCallRequest
 );
 
+// waiting room
 router.get(
     '/store/:storeId/waiting-room',
     [check('storeId').isInt()],
-    validatorCtrl.validateParams,
-    authenticationCtrl.isClientInQueueOrStoreUserOwner,
+    paramsValidatorMidd.validateParams,
+    authorizationMidd.checkAuthorization,
     waitingRoomCtrl.getWaitingRoom
 );
+
+//ToDo: Remove
 
 router.delete(
     '/store/:storeId/waiting-room',
     [check('storeId').isInt()],
-    validatorCtrl.validateParams,
+    paramsValidatorMidd.validateParams,
     authenticationCtrl.isStoreUserOwner,
     waitingRoomCtrl.removeAll
 );
@@ -63,7 +73,7 @@ router.delete(
 router.get(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
     [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
-    validatorCtrl.validateParams,
+    paramsValidatorMidd.validateParams,
     authenticationCtrl.isClientInQueueOrStoreUserOwner,
     waitingRoomCtrl.isValidRequest,
     waitingRoomCtrl.getResquest
@@ -72,7 +82,7 @@ router.get(
 router.delete(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
     [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
-    validatorCtrl.validateParams,
+    paramsValidatorMidd.validateParams,
     authenticationCtrl.isClientOwnerOrStoreUserOwner,
     waitingRoomCtrl.isValidRequest,
     waitingRoomCtrl.isInQueue,
@@ -83,7 +93,7 @@ router.delete(
 router.post(
     '/store/:storeId/calls',
     [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
-    validatorCtrl.validateParams,
+    paramsValidatorMidd.validateParams,
     authenticationCtrl.isStoreUserOwner,
     waitingRoomCtrl.isValidRequest,
     waitingRoomCtrl.isInQueue,
@@ -93,7 +103,7 @@ router.post(
 router.get(
     '/store/:storeId/calls/:callId',
     [check('storeId').isInt(), check('callId').isInt()],
-    validatorCtrl.validateParams,
+    paramsValidatorMidd.validateParams,
     callCtrl.isValidCall,
     callCtrl.getCall
 );

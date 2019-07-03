@@ -13,6 +13,7 @@ let redisCli = null;
     redisCli = await initRedisCli();
 })();
 
+//ToDo: REMOVE
 const REQUESTED = 'REQUESTED';
 const IN = 'IN';
 const REMOVED = 'REMOVED';
