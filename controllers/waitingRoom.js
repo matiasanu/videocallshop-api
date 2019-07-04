@@ -15,10 +15,11 @@ let redisCli = null;
 
 const getWaitingRoom = async (req, res, next) => {
     // authorization
-    if (
-        !req.authorization.storeUser.thisStore &&
-        !req.authorization.callRequestToken.thisStore
-    ) {
+    const hasAccess =
+        req.authorization.storeUser.thisStore ||
+        (req.authorization.callRequestToken.thisStore &&
+            req.authorization.callRequestToken.inQueue);
+    if (!hasAccess) {
         const err = new Error('Unauthorized.');
         err.status = 404;
         return next(err);
