@@ -5,7 +5,8 @@ const checkAuthorization = async (req, res, next) => {
     let authorization = {
         callRequestToken: {
             valid: false,
-            thisStore: false,
+            thisStore: false, // is from the storerequested
+            thisCallRequest: false, // is the same call request requested
             inQueue: false,
         },
         storeUser: {
@@ -13,12 +14,6 @@ const checkAuthorization = async (req, res, next) => {
             thisStore: false,
         },
     };
-
-    // gets requested storeId
-    let storeIdRequested = req.params.storeId || req.body.storeId;
-    if (storeIdRequested) {
-        storeIdRequested = parseInt(storeIdRequested);
-    }
 
     // -------- callRequest --------
 
@@ -41,19 +36,30 @@ const checkAuthorization = async (req, res, next) => {
         }
     }
 
-    // is the valid jwt from requested store
-    if (authorization.callRequestToken.valid) {
+    // is storeIdRequested the same of the jwt
+    let storeIdRequested = req.params.storeId || req.body.storeId;
+    if (storeIdRequested) {
+        storeIdRequested = parseInt(storeIdRequested);
+    }
+    if (storeIdRequested && authorization.callRequestToken.valid) {
         authorization.callRequestToken.thisStore =
-            storeIdRequested && req.jwtDecoded.storeId === storeIdRequested;
+            req.jwtDecoded.storeId === storeIdRequested;
 
-        console.log(
-            'req.jwtDecoded.callRequestId',
-            req.jwtDecoded.callRequestId
-        );
         const callRequestInQueue = await waitingRoomModel.findCallRequestInQueue(
             req.jwtDecoded.callRequestId
         );
         authorization.callRequestToken.inQueue = !!callRequestInQueue;
+    }
+
+    // is callIdRequested the same of the jwt
+    let callRequestIdRequested =
+        req.params.callRequestId || req.body.callRequestId;
+    if (callRequestIdRequested) {
+        callRequestIdRequested = parseInt(callRequestIdRequested);
+    }
+    if (callRequestIdRequested && authorization.callRequestToken.valid) {
+        authorization.callRequestToken.thisCallRequest =
+            req.jwtDecoded.callRequestId === callRequestIdRequested;
     }
 
     // -------- storeUser --------

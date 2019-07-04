@@ -2,7 +2,6 @@ const initRedisCli = require('../helpers/redis');
 const pool = require('../helpers/postgres');
 
 // models
-const waitingRoomModel = require('./waitingRoom');
 const callRequestModel = require('./callRequest');
 const storeModel = require('./store');
 
@@ -60,6 +59,19 @@ const pushCallRequestInQueue = async (waitingRoomId, callRequestId) => {
     }
 };
 
+const removeCallRequestInQueue = async (waitingRoomId, callRequestId) => {
+    try {
+        const membersAffected = await redisCli
+            .multi()
+            .lrem(waitingRoomId, 0, callRequestId)
+            .execAsync();
+
+        return membersAffected[0];
+    } catch (err) {
+        throw err;
+    }
+};
+
 const findCallRequestInQueueByEmail = async email => {
     const waitingRooms = await getWaitingRooms();
     let callRequestFounded = null;
@@ -71,7 +83,7 @@ const findCallRequestInQueueByEmail = async email => {
                 callRequestId
             );
 
-            if (callRequest.email === email) {
+            if (callRequest && callRequest.email === email) {
                 callRequestFounded = callRequest;
             }
         }
@@ -212,6 +224,7 @@ module.exports = {
     findCallRequestInQueueByEmail,
     getWaitingRoomByStoreId,
     pushCallRequestInQueue,
+    removeCallRequestInQueue,
     getRequest,
     addRequest,
     pushClient,

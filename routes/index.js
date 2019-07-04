@@ -11,9 +11,10 @@ const callCtrl = require('../controllers/call');
 const callRequestCtrl = require('../controllers/callRequest');
 
 // middlewares
-const storeMidd = require('../middlewares/store');
-const authorizationMidd = require('../middlewares/authorization');
 const paramsValidatorMidd = require('../middlewares/paramsValidator');
+const authorizationMidd = require('../middlewares/authorization');
+const storeMidd = require('../middlewares/store');
+const callRequestMidd = require('../middlewares/callRequest');
 
 // hello
 router.get('/', ({ res }) => res.send('videocallshop-api available'));
@@ -50,6 +51,17 @@ router.post(
     callRequestCtrl.createCallRequest
 );
 
+router.delete(
+    '/stores/:storeId/call-requests/:callRequestId',
+    [check('storeId').isInt(), check('callRequestId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    callRequestCtrl.cancelCallRequest
+);
+
 // waiting room
 router.get(
     '/stores/:storeId/waiting-room',
@@ -61,15 +73,6 @@ router.get(
 );
 
 //ToDo: Remove
-
-router.delete(
-    '/store/:storeId/waiting-room',
-    [check('storeId').isInt()],
-    paramsValidatorMidd.validateParams,
-    authenticationCtrl.isStoreUserOwner,
-    waitingRoomCtrl.removeAll
-);
-
 // waiting room request
 router.get(
     '/store/:storeId/waiting-room/:waitingRoomRequestId',
