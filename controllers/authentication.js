@@ -20,7 +20,7 @@ const authenticateStoreUser = async (req, res, next) => {
             delete user.password;
 
             // creates session for the user
-            req.session.user = user;
+            req.session.storeUser = user;
 
             const status = 200;
             res.status(status);

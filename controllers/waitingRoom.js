@@ -13,6 +13,43 @@ let redisCli = null;
     redisCli = await initRedisCli();
 })();
 
+const getWaitingRoom = async (req, res, next) => {
+    // authorization
+    if (
+        !req.authorization.storeUser.thisStore &&
+        !req.authorization.callRequestToken.thisStore
+    ) {
+        const err = new Error('Unauthorized.');
+        err.status = 404;
+        return next(err);
+    }
+
+    let { storeId } = req.params;
+    storeId = parseInt(storeId);
+
+    try {
+        const waitingRoom = await waitingRoomModel.getWaitingRoomByStoreId(
+            storeId
+        );
+        if (!waitingRoom) {
+            const err = new Error('Store does not have waiting room.');
+            err.status = 500;
+            return next(err);
+        }
+
+        waitingRoom.queue = await waitingRoomModel.getQueue(
+            waitingRoom.waitingRoomId
+        );
+
+        const status = 200;
+        res.status(status);
+        res.send({ status, data: waitingRoom });
+    } catch (err) {
+        err.status = 500;
+        return next(err);
+    }
+};
+
 //ToDo: REMOVE
 const REQUESTED = 'REQUESTED';
 const IN = 'IN';
@@ -222,7 +259,7 @@ const removeAll = async (req, res, next) => {
         return next(err);
     }
 };
-
+/*
 const getWaitingRoom = async (req, res, next) => {
     try {
         let { storeId } = req.params;
@@ -247,7 +284,7 @@ const getWaitingRoom = async (req, res, next) => {
         return next(err);
     }
 };
-
+*/
 const setRequestCalled = async (storeId, waitingRoomRequestId) => {
     await waitingRoomModel.setState(waitingRoomRequestId, CALLED);
 

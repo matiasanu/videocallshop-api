@@ -16,7 +16,7 @@ const createCallRequest = async (req, res, next) => {
         const storeId = parseInt(req.params.storeId);
 
         // checks if another email is not into a queue
-        const callRequest = await waitingRoomModel.findCallRequestInQueue(
+        const callRequest = await waitingRoomModel.findCallRequestInQueueByEmail(
             email
         );
 

@@ -52,9 +52,10 @@ router.post(
 
 // waiting room
 router.get(
-    '/store/:storeId/waiting-room',
+    '/stores/:storeId/waiting-room',
     [check('storeId').isInt()],
     paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
     authorizationMidd.checkAuthorization,
     waitingRoomCtrl.getWaitingRoom
 );

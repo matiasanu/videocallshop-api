@@ -60,7 +60,7 @@ const pushCallRequestInQueue = async (waitingRoomId, callRequestId) => {
     }
 };
 
-const findCallRequestInQueue = async email => {
+const findCallRequestInQueueByEmail = async email => {
     const waitingRooms = await getWaitingRooms();
     let callRequestFounded = null;
 
@@ -73,6 +73,24 @@ const findCallRequestInQueue = async email => {
 
             if (callRequest.email === email) {
                 callRequestFounded = callRequest;
+            }
+        }
+    }
+
+    return callRequestFounded;
+};
+
+const findCallRequestInQueue = async callRequestIdToFind => {
+    const waitingRooms = await getWaitingRooms();
+    let callRequestFounded = null;
+
+    for await (const waitingRoom of waitingRooms) {
+        const queue = await getQueue(waitingRoom.waitingRoomId);
+        for await (const callRequestId of queue) {
+            if (parseInt(callRequestId) === parseInt(callRequestIdToFind)) {
+                callRequestFounded = await callRequestModel.getCallRequest(
+                    callRequestId
+                );
             }
         }
     }
@@ -189,7 +207,9 @@ const setState = async (waitingRoomRequestId, state) => {
 };
 
 module.exports = {
+    getQueue,
     findCallRequestInQueue,
+    findCallRequestInQueueByEmail,
     getWaitingRoomByStoreId,
     pushCallRequestInQueue,
     getRequest,
