@@ -8,7 +8,6 @@ const callRequestModel = require('../models/callRequest');
 const NEW = 'NEW';
 const IN_QUEUE = 'IN_QUEUE';
 const CANCELLED = 'CANCELLED';
-const CALLED = 'CALLED';
 
 const createCallRequest = async (req, res, next) => {
     try {
@@ -16,11 +15,11 @@ const createCallRequest = async (req, res, next) => {
         const storeId = parseInt(req.params.storeId);
 
         // checks if another email is not into a queue
-        const callRequestInQueue = await waitingRoomModel.findCallRequestInQueueByEmail(
+        const inQueue = await waitingRoomModel.findCallRequestInQueueByEmail(
             email
         );
 
-        if (callRequestInQueue) {
+        if (inQueue) {
             const err = new Error('Email already in use.');
             err.status = 409;
             return next(err);
@@ -78,7 +77,7 @@ const createCallRequest = async (req, res, next) => {
     }
 };
 
-cancelCallRequest = async (req, res, next) => {
+const cancelCallRequest = async (req, res, next) => {
     try {
         // authorization
         const hasAccess =
@@ -95,10 +94,14 @@ cancelCallRequest = async (req, res, next) => {
         // processes cancel call request
         const { storeId, callRequestId } = req.params;
 
-        // check if is not already cancelled
+        // checks if is not already cancelled
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId
         );
+
+        if (!callRequest) {
+            throw new Error('Call request not found.');
+        }
 
         if (callRequest.state === CANCELLED) {
             const status = 400;
@@ -124,7 +127,43 @@ cancelCallRequest = async (req, res, next) => {
     }
 };
 
+const getCallRequest = async (req, res, next) => {
+    try {
+        // authorization
+        const hasAccess =
+            req.authorization.storeUser.thisStore ||
+            (req.authorization.callRequestToken.thisStore &&
+                req.authorization.callRequestToken.inQueue);
+
+        if (!hasAccess) {
+            const err = new Error('Unauthorized.');
+            err.status = 404;
+            return next(err);
+        }
+
+        // returns call request
+        const { callRequestId } = req.params;
+        const callRequest = await callRequestModel.getCallRequest(
+            callRequestId
+        );
+
+        if (!callRequest) {
+            throw new Error('Call request does not exist.');
+        }
+
+        const status = 200;
+        res.send({ status, data: callRequest });
+    } catch (err) {
+        //Logger
+        console.log('ERROR - getCallRequest fn', err);
+        let myErr = new Error('Can not process the request.');
+        myErr.status = 500;
+        return next(myErr);
+    }
+};
+
 module.exports = {
     createCallRequest,
     cancelCallRequest,
+    getCallRequest,
 };

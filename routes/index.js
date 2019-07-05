@@ -15,6 +15,7 @@ const paramsValidatorMidd = require('../middlewares/paramsValidator');
 const authorizationMidd = require('../middlewares/authorization');
 const storeMidd = require('../middlewares/store');
 const callRequestMidd = require('../middlewares/callRequest');
+const callMidd = require('../middlewares/call');
 
 // hello
 router.get('/', ({ res }) => res.send('videocallshop-api available'));
@@ -51,6 +52,17 @@ router.post(
     callRequestCtrl.createCallRequest
 );
 
+router.get(
+    '/stores/:storeId/call-requests/:callRequestId',
+    [check('storeId').isInt(), check('callRequestId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    callRequestCtrl.getCallRequest
+);
+
 router.delete(
     '/stores/:storeId/call-requests/:callRequestId',
     [check('storeId').isInt(), check('callRequestId').isInt()],
@@ -72,43 +84,25 @@ router.get(
     waitingRoomCtrl.getWaitingRoom
 );
 
-//ToDo: Remove
-// waiting room request
-router.get(
-    '/store/:storeId/waiting-room/:waitingRoomRequestId',
-    [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
-    paramsValidatorMidd.validateParams,
-    authenticationCtrl.isClientInQueueOrStoreUserOwner,
-    waitingRoomCtrl.isValidRequest,
-    waitingRoomCtrl.getResquest
-);
-
-router.delete(
-    '/store/:storeId/waiting-room/:waitingRoomRequestId',
-    [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
-    paramsValidatorMidd.validateParams,
-    authenticationCtrl.isClientOwnerOrStoreUserOwner,
-    waitingRoomCtrl.isValidRequest,
-    waitingRoomCtrl.isInQueue,
-    waitingRoomCtrl.removeClient
-);
-
 // calls
 router.post(
-    '/store/:storeId/calls',
-    [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
+    '/stores/:storeId/calls',
+    [check('storeId').isInt(), check('callRequestId').isInt()],
     paramsValidatorMidd.validateParams,
-    authenticationCtrl.isStoreUserOwner,
-    waitingRoomCtrl.isValidRequest,
-    waitingRoomCtrl.isInQueue,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
     callCtrl.callClient
 );
 
 router.get(
-    '/store/:storeId/calls/:callId',
+    '/stores/:storeId/calls/:callId',
     [check('storeId').isInt(), check('callId').isInt()],
     paramsValidatorMidd.validateParams,
-    callCtrl.isValidCall,
+    storeMidd.storeExists,
+    callMidd.isCallFromStore,
+    authorizationMidd.checkAuthorization,
     callCtrl.getCall
 );
 

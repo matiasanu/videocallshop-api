@@ -28,7 +28,7 @@ const getWaitingRoomByStoreId = async storeId => {
     const waitingRooms = await getWaitingRooms();
     let waitingRoomFounded = null;
     for (const waitingRoom of waitingRooms) {
-        if (waitingRoom.storeId === storeId) {
+        if (parseInt(waitingRoom.storeId) === parseInt(storeId)) {
             waitingRoomFounded = waitingRoom;
         }
     }

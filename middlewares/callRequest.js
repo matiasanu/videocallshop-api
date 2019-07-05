@@ -18,8 +18,8 @@ const callRequestExists = async (req, res, next) => {
 };
 
 const isCallRequestFromStore = async (req, res, next) => {
-    const err = new Error('Call request is not from the store');
-    err.status = 404;
+    const err = new Error('Unauthorized.');
+    err.status = 401;
 
     const callRequestId = req.params.callRequestId || req.body.callRequestId;
     const storeId = req.params.storeId || req.body.storeId;

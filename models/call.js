@@ -6,23 +6,19 @@ const getCall = async callId => {
             `SELECT * FROM calls c WHERE c.call_id='${callId}' LIMIT 1;`
         );
 
-        return result.rows;
+        return result.rows.length ? result.rows[0] : null;
     } catch (err) {
         console.log('ERROR query getStore');
         throw new Error(err.message);
     }
 };
 
-const registerCall = async (
-    waitingRoomRequestId,
-    tokboxSessionId,
-    storeUserId
-) => {
+const registerCall = async (callRequestId, tokboxSessionId, storeUserId) => {
     try {
         const now = new Date().toISOString();
 
         const result = await pool.query(
-            `INSERT INTO calls(waiting_room_request_id, tokbox_session_id, store_user_id, created_on) VALUES ('${waitingRoomRequestId}', '${tokboxSessionId}', '${storeUserId}', '${now}') RETURNING waiting_room_request_id;`
+            `INSERT INTO calls(call_request_id, tokbox_session_id, store_user_id, created_on) VALUES ('${callRequestId}', '${tokboxSessionId}', '${storeUserId}', '${now}') RETURNING call_id;`
         );
 
         return result.rows[0].callId;
