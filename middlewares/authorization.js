@@ -1,12 +1,14 @@
 const jwtHelper = require('../helpers/jwt');
 const waitingRoomModel = require('../models/waitingRoom');
+const callModel = require('../models/call');
 
 const checkAuthorization = async (req, res, next) => {
     let authorization = {
         callRequestToken: {
             valid: false,
             thisStore: false, // is from the storerequested
-            thisCallRequest: false, // is the same call request requested
+            thisCallRequest: false, // if req request info of callRequest and is owner
+            thisCall: false, // if req request info of call and is owner
             inQueue: false,
         },
         storeUser: {
@@ -36,39 +38,59 @@ const checkAuthorization = async (req, res, next) => {
         }
     }
 
-    // is storeIdRequested the same of the jwt
-    let storeIdRequested = req.params.storeId || req.body.storeId;
-    if (storeIdRequested) {
-        storeIdRequested = parseInt(storeIdRequested);
-    }
-    if (storeIdRequested && authorization.callRequestToken.valid) {
-        authorization.callRequestToken.thisStore =
-            req.jwtDecoded.storeId === storeIdRequested;
-
+    if (authorization.callRequestToken.valid) {
+        // in queue
         const callRequestInQueue = await waitingRoomModel.findCallRequestInQueue(
             req.jwtDecoded.callRequestId
         );
         authorization.callRequestToken.inQueue = !!callRequestInQueue;
-    }
 
-    // is callIdRequested the same of the jwt
-    let callRequestIdRequested =
-        req.params.callRequestId || req.body.callRequestId;
-    if (callRequestIdRequested) {
-        callRequestIdRequested = parseInt(callRequestIdRequested);
-    }
-    if (callRequestIdRequested && authorization.callRequestToken.valid) {
-        authorization.callRequestToken.thisCallRequest =
-            req.jwtDecoded.callRequestId === callRequestIdRequested;
+        // is store requested the same of the jwt
+        let storeIdRequested = req.params.storeId || req.body.storeId;
+        if (storeIdRequested) {
+            storeIdRequested = parseInt(storeIdRequested);
+
+            authorization.callRequestToken.thisStore =
+                req.jwtDecoded.storeId === storeIdRequested;
+        }
+
+        // is call request requested requested the same of the jwt
+        let callRequestIdRequested =
+            req.params.callRequestId || req.body.callRequestId;
+        if (callRequestIdRequested) {
+            callRequestIdRequested = parseInt(callRequestIdRequested);
+
+            authorization.callRequestToken.thisCallRequest =
+                req.jwtDecoded.callRequestId === callRequestIdRequested;
+        }
+
+        // is call requested linked to the call request of the jwt
+        let callIdRequested = req.params.callId || req.body.callId;
+        if (callIdRequested) {
+            callIdRequested = parseInt(callIdRequested);
+
+            const callRequested = await callModel.getCall(callIdRequested);
+            console.log('-------', req.jwtDecoded.callRequestId);
+            console.log('-------', callRequested.callRequestId);
+            if (callRequested) {
+                authorization.callRequestToken.thisCall =
+                    parseInt(req.jwtDecoded.callRequestId) ===
+                    parseInt(callRequested.callRequestId);
+            }
+        }
     }
 
     // -------- storeUser --------
 
     authorization.storeUser.authenticated = !!req.session.storeUser;
     if (authorization.storeUser.authenticated) {
-        authorization.storeUser.thisStore =
-            storeIdRequested &&
-            req.session.storeUser.storeId === storeIdRequested;
+        let storeIdRequested = req.params.storeId || req.body.storeId;
+        if (storeIdRequested) {
+            authorization.storeUser.thisStore =
+                storeIdRequested &&
+                parseInt(req.session.storeUser.storeId) ===
+                    parseInt(storeIdRequested);
+        }
     }
 
     console.log(authorization);

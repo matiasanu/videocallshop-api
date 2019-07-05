@@ -7,15 +7,33 @@ const CALLED = 'CALLED';
 
 const getCall = async (req, res, next) => {
     try {
+        // authorization
+        const hasAccess =
+            req.authorization.storeUser.thisStore ||
+            (req.authorization.callRequestToken.thisStore &&
+                req.authorization.callRequestToken.thisCall);
+
+        if (!hasAccess) {
+            const err = new Error('Unauthorized.');
+            err.status = 404;
+            return next(err);
+        }
+
         const { callId } = req.params;
         const call = await callModel.getCall(callId);
+        if (!call) {
+            throw new Error('Call does not exist.');
+        }
 
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
     } catch (err) {
-        err.status = 500;
-        return next(err);
+        //Logger
+        console.log('ERROR - getCall fn', err);
+        let myErr = new Error('Can not process the request.');
+        myErr.status = 500;
+        return next(myErr);
     }
 };
 
@@ -82,40 +100,7 @@ const callClient = async (req, res, next) => {
     }
 };
 
-const isValidCall = async (req, res, next) => {
-    let { storeId } = req.params;
-    let callId = req.params.callId || req.body.callId;
-    callId = parseInt(callId);
-    storeId = parseInt(storeId);
-
-    // check call
-    const calls = await callModel.getCall(callId);
-
-    if (!calls.length) {
-        // call not founded
-        const err = new Error('Call is not exist.');
-        err.status = 500;
-        return next(err);
-    }
-
-    const call = calls[0];
-    const { waitingRoomRequestId } = call;
-
-    const requests = await waitingRoomModel.getRequest(waitingRoomRequestId);
-    request = requests[0];
-
-    if (request.storeId !== storeId) {
-        // The request is not from this store
-        const err = new Error('The call is not from this store');
-        err.status = 401;
-        return next(err);
-    }
-
-    next();
-};
-
 module.exports = {
     callClient,
     getCall,
-    isValidCall,
 };

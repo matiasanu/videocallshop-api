@@ -24,7 +24,6 @@ const isCallRequestFromStore = async (req, res, next) => {
     const callRequestId = req.params.callRequestId || req.body.callRequestId;
     const storeId = req.params.storeId || req.body.storeId;
     const callRequest = await callRequestModel.getCallRequest(callRequestId);
-    console.log(callRequestId, storeId, callRequest);
 
     if (
         !callRequestId ||
