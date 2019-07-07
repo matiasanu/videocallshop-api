@@ -85,7 +85,7 @@
 
                 const callRequestId = response.data.callRequestId;
                 $("#callRequestId").html(callRequestId);
-                $("#callRequestData").html(JSON.stringify(response.data) + '<p><button id="deleteCallResquest">Delete</button></p>');
+                $("#callRequestData").html(JSON.stringify(response.data) + '<p><button id="cancelCallResquest">Cancel</button></p>');
 
                 var socket = io(
                     '?storeId='+ storeId,
@@ -122,14 +122,14 @@
                     renderQueue(queue);
                 });
 
-                $('#callRequestData').on('click', '#deleteCallResquest', ev => {
+                $('#callRequestData').on('click', '#cancelCallResquest', ev => {
                     $.ajax({
                         url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
                         type: 'DELETE'
                     }).then(() => {
                         $("#fadeMessage").text("Call Request cancelled");
                         $("#fadeMessage").fadeOut(6000);
-                        $("#deleteCallResquest").hide();
+                        $("#cancelCallResquest").hide();
                         $("#callRequestData").append("<p style='color: darkred'><b>DELETED</b></p>");
                     }).catch(res => {
                         if(res.responseJSON) {

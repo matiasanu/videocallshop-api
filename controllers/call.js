@@ -70,14 +70,9 @@ const callClient = async (req, res, next) => {
             storeUserId
         );
 
-        console.log('--- storeId', storeId);
-
         const {
             waitingRoomId,
         } = await waitingRoomModel.getWaitingRoomByStoreId(storeId);
-
-        console.log('--- waitingRoomId', waitingRoomId);
-        console.log('--- callRequestId', callRequestId);
 
         await waitingRoomModel.removeCallRequestInQueue(
             waitingRoomId,

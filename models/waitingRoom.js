@@ -136,6 +136,5 @@ module.exports = {
     removeCallRequestInQueue,
     findCallRequestInQueueByEmail,
     findCallRequestInQueue,
-    broadcastQueue,
     subscribeQueues,
 };

@@ -35,7 +35,7 @@
         // iterate each call request
         $.each(queue, (index, callRequestId) => {
             // append element with "loading..." state
-            $("#queue").append('<p id="' + callRequestId +'"><span class="data">' + callRequestId + ' - ' + 'loading...' + '</span> <button class="deleteCallResquest">Cancel</button></p>');
+            $("#queue").append('<p id="' + callRequestId +'"><span class="data">' + callRequestId + ' - ' + 'loading...' + '</span> <button class="cancelCallResquest">Cancel</button></p>');
 
             // get request from memory
             var callRequest = callRequests[callRequestId];
@@ -55,7 +55,7 @@
     };
 
     $( document ).ready(() => {
-        $('#queue').on('click', '.deleteCallResquest', ev => {
+        $('#queue').on('click', '.cancelCallResquest', ev => {
             const callRequestId = ev.currentTarget.parentElement.id;
             $.ajax({
                 url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
