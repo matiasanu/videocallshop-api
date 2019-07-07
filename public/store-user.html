@@ -1,0 +1,131 @@
+<script src="js/socket.io.dev.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+
+<script>
+    var callRequests = [];
+    var storeId = null;
+
+    function getJsonFromUrl(url) {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    const updateCallRequestLabel = (callResquest) => {
+        const label = callResquest.callRequestId + ' - ' + callResquest.name + ' ' + callResquest.lastName + ' - ' + callResquest.email;
+        $("#" + callResquest.callRequestId).html(label);
+    };
+
+    const getCallRequestDataFromApi = (callRequestId, callback) => {
+        return $.get({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId,
+            }
+        );
+    };
+
+    const renderQueue = queue => {
+        // restart the waiting room queue
+        $("#queue").html("");
+
+        // iterate each call request
+        $.each(queue, (index, callRequestId) => {
+            // append element with "loading..." state
+            $("#queue").append('<p id="' + callRequestId + '">' + callRequestId + ' - ' + 'loading...' + '</p>');
+
+            // get request from memory
+            var callRequest = callRequests[callRequestId];
+            if(!callRequest) {
+                // request from memory not found, get from api
+                getCallRequestDataFromApi(callRequestId)
+                    .then(response => {
+                        const callRequestData = response.data;
+                        // store call request fetched on memory
+                        callRequests[callRequestData.callRequestId] = callRequestData;
+                        updateCallRequestLabel(callRequestData);
+                    });
+            } else {
+                updateCallRequestLabel(callRequest);
+            }
+        });
+    };
+
+    $( document ).ready(function() {
+        $("#removeAllBtn").click(() => {
+            $.ajax({
+                url: '/store/' +storeId + '/waiting-room', // url
+                type: 'DELETE'
+            });
+        });
+
+        var params = getJsonFromUrl();
+        var email = params.email;
+        var password = params.password;
+
+        if(!email || !password) {
+            $('#invalidParams').show();
+            return ;
+        }
+
+        $("#email").html(email);
+        $.post(
+            '/authentication/store', // url
+            { email, password }, // params
+            (response, textStatus, request) => { // callback
+                storeId = response.data.storeId;
+                $("#storeId").html(storeId);
+                $("#removeAllBtn").show();
+
+                var socket = io(
+                    '?storeId='+ storeId,
+                    {
+                        path: '/waiting-room-socket'
+                    }
+                );
+
+                socket.on('disconnect', function(){
+                    $("#socketStatus").html("<span style='color: darkred'>disconnected</span>")
+                });
+
+                socket.on('connect', function(){
+                    $("#socketStatus").html("<span style='color: green'>connected</span>")
+                });
+
+                socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
+                    console.log('WAITING_ROOM_SENDED',  waitingRoom.queue);
+                    renderQueue(waitingRoom.queue);
+                });
+
+                socket.on('QUEUE_CHANGED', function(queue){
+                    console.log('QUEUE_CHANGED', queue);
+                    renderQueue(queue);
+                });
+            }
+        ).fail(function(response) {
+            console.log(response);
+            alert( response.responseJSON.message );
+        });
+
+    });
+</script>
+<html>
+<body>
+<div style="display: none;" id="invalidParams">
+    <h1 style="color: darkred">Error - Required uri: ?email=alemmartin@gmail.com&password=sonserios10</h1>
+</div>
+
+<h1>Tienda ID: <span id="storeId"></span></h1>
+<h1>Socket STATUS: <span id="socketStatus"></span></h1>
+
+<h2>User Email</h2>
+<p id="email"></p>
+
+<h1>COLA</h1>
+<button id="removeAllBtn" style="display: none;">Eliminar Todos</button>
+<p><span id="queue"></span></p>
+</body>
+</html>

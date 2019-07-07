@@ -75,7 +75,7 @@
         }
 
         $("#storeId").html(storeId);
-        $("#clientData").html(email + ' - ' + name + ' - ' + lastName);
+        $("#callRequestData").html(email + ' - ' + name + ' - ' + lastName);
 
         $.post(
             '/stores/' + storeId + '/call-requests', // url
@@ -140,8 +140,8 @@
         <h2>My callRequestId</h2>
         <p id="callRequestId"></p>
 
-        <h2>Client Data</h2>
-        <p id="clientData"></p>
+        <h2>Call Request</h2>
+        <p id="callRequestData"></p>
 
         <h2>Token</h2>
         <p id="token"></p>

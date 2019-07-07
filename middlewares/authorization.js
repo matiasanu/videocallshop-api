@@ -92,7 +92,9 @@ const checkAuthorization = async (req, res, next) => {
     if (authorization.storeUser.authenticated) {
         let storeIdRequested =
             (req.params && req.params.storeId) ||
-            (req.body && req.body.storeId);
+            (req.body && req.body.storeId) ||
+            (req.query && req.query.storeId);
+
         if (storeIdRequested) {
             authorization.storeUser.thisStore =
                 storeIdRequested &&
