@@ -104,13 +104,17 @@ const cancelCallRequest = async (req, res, next) => {
         }
 
         if (callRequest.state === CANCELLED) {
-            const status = 400;
-            const message = 'The call request is already cancelled';
-            res.send({ status, message });
+            const err = new Error('The call request is already cancelled.');
+            err.status = 400;
+            return next(err);
         }
 
+        const {
+            waitingRoomId,
+        } = await waitingRoomModel.getWaitingRoomByStoreId(storeId);
+
         const callRequestsAffected = await waitingRoomModel.removeCallRequestInQueue(
-            storeId,
+            waitingRoomId,
             callRequestId
         );
 

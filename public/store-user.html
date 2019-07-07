@@ -5,11 +5,11 @@
     var callRequests = [];
     var storeId = null;
 
-    function getJsonFromUrl(url) {
+    const getJsonFromUrl = url => {
         if(!url) url = location.search;
         var query = url.substr(1);
         var result = {};
-        query.split("&").forEach(function(part) {
+        query.split("&").forEach(part => {
             var item = part.split("=");
             result[item[0]] = decodeURIComponent(item[1]);
         });
@@ -18,7 +18,7 @@
 
     const updateCallRequestLabel = (callResquest) => {
         const label = callResquest.callRequestId + ' - ' + callResquest.name + ' ' + callResquest.lastName + ' - ' + callResquest.email;
-        $("#" + callResquest.callRequestId).html(label);
+        $("#" + callResquest.callRequestId).find('.data').html(label);
     };
 
     const getCallRequestDataFromApi = (callRequestId, callback) => {
@@ -35,7 +35,7 @@
         // iterate each call request
         $.each(queue, (index, callRequestId) => {
             // append element with "loading..." state
-            $("#queue").append('<p id="' + callRequestId + '">' + callRequestId + ' - ' + 'loading...' + '</p>');
+            $("#queue").append('<p id="' + callRequestId +'"><span class="data">' + callRequestId + ' - ' + 'loading...' + '</span> <button class="deleteCallResquest">Delete</button></p>');
 
             // get request from memory
             var callRequest = callRequests[callRequestId];
@@ -54,11 +54,16 @@
         });
     };
 
-    $( document ).ready(function() {
-        $("#removeAllBtn").click(() => {
+    $( document ).ready(() => {
+        $('#queue').on('click', '.deleteCallResquest', ev => {
+            const callRequestId = ev.currentTarget.parentElement.id;
             $.ajax({
-                url: '/store/' +storeId + '/waiting-room', // url
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
                 type: 'DELETE'
+            }).then(() => {
+                alert("Call request CANCELLED");
+            }).catch(res => {
+                alert("ERROR cancelling the call request: " + res.responseJSON.message);
             });
         });
 
@@ -87,25 +92,25 @@
                     }
                 );
 
-                socket.on('disconnect', function(){
+                socket.on('disconnect', () => {
                     $("#socketStatus").html("<span style='color: darkred'>disconnected</span>")
                 });
 
-                socket.on('connect', function(){
+                socket.on('connect', () => {
                     $("#socketStatus").html("<span style='color: green'>connected</span>")
                 });
 
-                socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
+                socket.on('WAITING_ROOM_SENDED', waitingRoom => {
                     console.log('WAITING_ROOM_SENDED',  waitingRoom.queue);
                     renderQueue(waitingRoom.queue);
                 });
 
-                socket.on('QUEUE_CHANGED', function(queue){
+                socket.on('QUEUE_CHANGED', queue => {
                     console.log('QUEUE_CHANGED', queue);
                     renderQueue(queue);
                 });
             }
-        ).fail(function(response) {
+        ).fail(response => {
             console.log(response);
             alert( response.responseJSON.message );
         });
@@ -125,7 +130,6 @@
 <p id="email"></p>
 
 <h1>COLA</h1>
-<button id="removeAllBtn" style="display: none;">Eliminar Todos</button>
 <p><span id="queue"></span></p>
 </body>
 </html>
