@@ -75,7 +75,6 @@
         }
 
         $("#storeId").html(storeId);
-        $("#callRequestData").html(email + ' - ' + name + ' - ' + lastName);
 
         $.post(
             '/stores/' + storeId + '/call-requests', // url
@@ -86,6 +85,7 @@
 
                 const callRequestId = response.data.callRequestId;
                 $("#callRequestId").html(callRequestId);
+                $("#callRequestData").html(JSON.stringify(response.data) + '<p><button id="deleteCallResquest">Delete</button></p>');
 
                 var socket = io(
                     '?storeId='+ storeId,
@@ -104,12 +104,12 @@
                     }
                 );
 
-                socket.on('disconnect', function(response){
-                    $("#socketStatus").html("<span style='color: darkred'>disconnected</span>")
+                socket.on('disconnect', () => {
+                    $("#socketStatus").html("<span style='color: darkred'>SOCKET DISCONNECTED</span>")
                 });
 
-                socket.on('connect', function(){
-                    $("#socketStatus").html("<span style='color: green'>connected</span>")
+                socket.on('connect', () => {
+                    $("#socketStatus").html("<span style='color: green'>SOCKET CONNECTED</span>")
                 });
 
                 socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
@@ -120,6 +120,25 @@
                 socket.on('QUEUE_CHANGED', function(queue){
                     console.log('QUEUE_CHANGED', queue);
                     renderQueue(queue);
+                });
+
+                $('#callRequestData').on('click', '#deleteCallResquest', ev => {
+                    $.ajax({
+                        url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
+                        type: 'DELETE'
+                    }).then(() => {
+                        $("#fadeMessage").text("Call Request cancelled");
+                        $("#fadeMessage").fadeOut(6000);
+                        $("#deleteCallResquest").hide();
+                        $("#callRequestData").append("<p style='color: darkred'><b>DELETED</b></p>");
+                    }).catch(res => {
+                        if(res.responseJSON) {
+                            alert("ERROR cancelling the call request: " + res.responseJSON.message);
+                        } else {
+                            alert("ERROR occurred, check network tab console");
+                        }
+
+                    });
                 });
             }
         ).fail(function(response) {
@@ -134,19 +153,23 @@
             <h1 style="color: darkred">Error - Required uri: ?storeId=1&email=validemail@gmail.com&name=Juan&lastName=Perez</h1>
         </div>
 
-        <h1>Tienda ID: <span id="storeId"></span></h1>
-        <h1>Socket STATUS: <span id="socketStatus"></span></h1>
+        <div style="text-align: center">
+            <h1 style="text-align: center">TIENDA ID: <span id="storeId"></span></h1>
+            <h3><span id="socketStatus"></span></h3>
+            <h2 id="fadeMessage" style="color: orangered"></h2>
+        </div>
+        <hr>
 
-        <h2>My callRequestId</h2>
+        <h4>MY callRequestId</h4>
         <p id="callRequestId"></p>
 
-        <h2>Call Request</h2>
+        <h4>Call Request</h4>
         <p id="callRequestData"></p>
 
-        <h2>Token</h2>
+        <h4>Token</h4>
         <p id="token"></p>
 
-        <h1>COLA</h1>
+        <h4>COLA</h4>
         <p><span id="queue"></span></p>
     </body>
 </html>
