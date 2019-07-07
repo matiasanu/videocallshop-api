@@ -46,7 +46,11 @@ const checkAuthorization = async (req, res, next) => {
         authorization.callRequestToken.inQueue = !!callRequestInQueue;
 
         // is store requested the same of the jwt
-        let storeIdRequested = req.params.storeId || req.body.storeId;
+        let storeIdRequested =
+            (req.params && req.params.storeId) ||
+            (req.body && req.body.storeId) ||
+            (req.query && req.query.storeId);
+
         if (storeIdRequested) {
             storeIdRequested = parseInt(storeIdRequested);
 
@@ -56,7 +60,8 @@ const checkAuthorization = async (req, res, next) => {
 
         // is call request requested requested the same of the jwt
         let callRequestIdRequested =
-            req.params.callRequestId || req.body.callRequestId;
+            (req.params && req.params.callRequestId) ||
+            (req.body && req.body.callRequestId);
         if (callRequestIdRequested) {
             callRequestIdRequested = parseInt(callRequestIdRequested);
 
@@ -65,7 +70,8 @@ const checkAuthorization = async (req, res, next) => {
         }
 
         // is call requested linked to the call request of the jwt
-        let callIdRequested = req.params.callId || req.body.callId;
+        let callIdRequested =
+            (req.params && req.params.callId) || (req.body && req.body.callId);
         if (callIdRequested) {
             callIdRequested = parseInt(callIdRequested);
 
@@ -84,7 +90,9 @@ const checkAuthorization = async (req, res, next) => {
 
     authorization.storeUser.authenticated = !!req.session.storeUser;
     if (authorization.storeUser.authenticated) {
-        let storeIdRequested = req.params.storeId || req.body.storeId;
+        let storeIdRequested =
+            (req.params && req.params.storeId) ||
+            (req.body && req.body.storeId);
         if (storeIdRequested) {
             authorization.storeUser.thisStore =
                 storeIdRequested &&

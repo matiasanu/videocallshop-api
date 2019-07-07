@@ -2,6 +2,13 @@
 <script src="js/jquery-3.4.1.min.js"></script>
 
 <script>
+    var callRequests = [];
+    var token = null;
+    var storeId = null;
+    var email = null;
+    var name = null;
+    var lastName = null;
+
     function getJsonFromUrl(url) {
         if(!url) url = location.search;
         var query = url.substr(1);
@@ -13,20 +20,54 @@
         return result;
     }
 
-    const renderWaitingRoom = waitingRoom => {
-        $("#waitingRoom").html("");
-        $.each(waitingRoom, (index, client) => {
-            $("#waitingRoom").append('<p>' + client + '</p>');
+    const updateCallRequestLabel = (callResquest) => {
+        const label = callResquest.callRequestId + ' - ' + callResquest.name + ' ' + callResquest.lastName + ' - ' + callResquest.email;
+        $("#" + callResquest.callRequestId).html(label);
+    };
+
+    const getCallRequestDataFromApi = (callRequestId, callback) => {
+        return $.get({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId,
+                beforeSend: function(request) {
+                    request.setRequestHeader("Authorization", token);
+                },
+            }
+        );
+    };
+
+    const renderQueue = queue => {
+        // restart the waiting room queue
+        $("#queue").html("");
+
+        // iterate each call request
+        $.each(queue, (index, callRequestId) => {
+            // append element with "loading..." state
+            $("#queue").append('<p id="' + callRequestId + '">' + callRequestId + ' - ' + 'loading...' + '</p>');
+
+            // get request from memory
+            var callRequest = callRequests[callRequestId];
+            if(!callRequest) {
+                // request from memory not found, get from api
+                getCallRequestDataFromApi(callRequestId)
+                    .then(response => {
+                        const callRequestData = response.data;
+                        // store call request fetched on memory
+                        callRequests[callRequestData.callRequestId] = callRequestData;
+                        updateCallRequestLabel(callRequestData);
+                    });
+            } else {
+                updateCallRequestLabel(callRequest);
+            }
         });
     };
 
     $( document ).ready(function() {
         var params = getJsonFromUrl();
 
-        var storeId = params.storeId;
-        var email = params.email;
-        var name = params.name;
-        var lastName = params.lastName;
+        storeId = params.storeId;
+        email = params.email;
+        name = params.name;
+        lastName = params.lastName;
 
         if(!storeId || !email || !name || !lastName) {
             $('#invalidParams').show();
@@ -37,14 +78,14 @@
         $("#clientData").html(email + ' - ' + name + ' - ' + lastName);
 
         $.post(
-            '/store/' + storeId + '/waiting-room', // url
+            '/stores/' + storeId + '/call-requests', // url
             { email, name, lastName }, // params
             (response, textStatus, request) => { // callback
-                const token = request.getResponseHeader('Authorization');
+                token = request.getResponseHeader('Authorization');
                 $("#token").html(token);
 
-                const waitingRoomRequestId = response.data.waitingRoomRequestId;
-                $("#waitingRoomRequestId").html(waitingRoomRequestId);
+                const callRequestId = response.data.callRequestId;
+                $("#callRequestId").html(callRequestId);
 
                 var socket = io(
                     '?storeId='+ storeId,
@@ -63,7 +104,7 @@
                     }
                 );
 
-                socket.on('disconnect', function(){
+                socket.on('disconnect', function(response){
                     $("#socketStatus").html("<span style='color: darkred'>disconnected</span>")
                 });
 
@@ -72,14 +113,13 @@
                 });
 
                 socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
-                    console.log(waitingRoom);
                     console.log('WAITING_ROOM_SENDED',  waitingRoom);
-                    renderWaitingRoom(waitingRoom);
+                    renderQueue(waitingRoom.queue);
                 });
 
-                socket.on('WAITING_ROOM_CHANGED', function(waitingRoom){
-                    console.log('WAITING_ROOM_CHANGED', waitingRoom);
-                    renderWaitingRoom(waitingRoom);
+                socket.on('QUEUE_CHANGED', function(queue){
+                    console.log('QUEUE_CHANGED', queue);
+                    renderQueue(queue);
                 });
             }
         ).fail(function(response) {
@@ -97,8 +137,8 @@
         <h1>Tienda ID: <span id="storeId"></span></h1>
         <h1>Socket STATUS: <span id="socketStatus"></span></h1>
 
-        <h2>waitingRoomRequestId</h2>
-        <p id="waitingRoomRequestId"></p>
+        <h2>My callRequestId</h2>
+        <p id="callRequestId"></p>
 
         <h2>Client Data</h2>
         <p id="clientData"></p>
@@ -107,6 +147,6 @@
         <p id="token"></p>
 
         <h1>COLA</h1>
-        <p><span id="waitingRoom"></span></p>
+        <p><span id="queue"></span></p>
     </body>
 </html>

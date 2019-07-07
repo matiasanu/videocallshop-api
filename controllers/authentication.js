@@ -22,6 +22,8 @@ const authenticateStoreUser = async (req, res, next) => {
             // creates session for the user
             req.session.storeUser = user;
 
+            await storeUserModel.updateLastLoginByEmail(email);
+
             const status = 200;
             res.status(status);
             res.send({ status, data: user });

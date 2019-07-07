@@ -1,14 +1,12 @@
-const initRedisCli = require('../helpers/redis');
-const pool = require('../helpers/postgres');
+const redisHelper = require('../helpers/redis');
 
 // models
 const callRequestModel = require('./callRequest');
 const storeModel = require('./store');
 
 let redisCli = null;
-
 (async () => {
-    redisCli = await initRedisCli();
+    redisCli = await redisHelper.createClient();
 })();
 
 const getWaitingRooms = async () => {
@@ -53,6 +51,8 @@ const pushCallRequestInQueue = async (waitingRoomId, callRequestId) => {
             .execAsync();
         listLength = result[0];
 
+        await broadcastQueue(waitingRoomId);
+
         return listLength;
     } catch (err) {
         throw err;
@@ -65,6 +65,8 @@ const removeCallRequestInQueue = async (waitingRoomId, callRequestId) => {
             .multi()
             .lrem(waitingRoomId, 0, callRequestId)
             .execAsync();
+
+        await broadcastQueue(waitingRoomId);
 
         return membersAffected[0];
     } catch (err) {
@@ -110,126 +112,30 @@ const findCallRequestInQueue = async callRequestIdToFind => {
     return callRequestFounded;
 };
 
-//ToDo: Remove
-const addRequest = async (storeId, email, name, lastName) => {
-    try {
-        const now = new Date().toISOString();
-
-        const result = await pool.query(
-            `INSERT INTO waiting_room_requests(store_id, name, last_name, email, created_on) VALUES ('${storeId}', '${name}', '${lastName}', '${email}', '${now}') RETURNING waiting_room_request_id;`
-        );
-
-        return result.rows[0].waitingRoomRequestId;
-    } catch (err) {
-        console.log('ERROR query addRequest');
-        throw new Error(err.message);
-    }
+const broadcastQueue = async waitingRoomId => {
+    const queue = await getQueue(waitingRoomId);
+    const message = {
+        type: 'QUEUE_CHANGED',
+        value: queue,
+    };
+    redisCli.publish(waitingRoomId, JSON.stringify(message));
 };
 
-const getRequest = async waitingRoomRequestId => {
-    try {
-        const result = await pool.query(
-            `SELECT * FROM waiting_room_requests r WHERE r.waiting_room_request_id='${waitingRoomRequestId}' LIMIT 1;`
-        );
-
-        return result.rows;
-    } catch (err) {
-        console.log('ERROR query getRequest');
-        throw new Error(err.message);
-    }
-};
-
-const searchRequests = async (email, state) => {
-    try {
-        const result = await pool.query(
-            `SELECT * FROM waiting_room_requests r WHERE r.email='${email}' AND r.state='${state}' LIMIT 1;`
-        );
-
-        return result.rows;
-    } catch (err) {
-        console.log('ERROR query getRequest');
-        throw new Error(err.message);
-    }
-};
-
-const pushClient = async (requestId, storeId) => {
-    try {
-        const waitingRoomId = `waitingRoom${storeId}`;
-
-        let listLength = await redisCli
-            .multi()
-            .rpush(waitingRoomId, requestId)
-            .execAsync();
-        listLength = listLength[0];
-
-        // return members affected
-        return listLength;
-    } catch (err) {
-        throw err;
-    }
-};
-
-const removeClient = async (waitingRoomRequestId, storeId) => {
-    try {
-        const myWaitingRoomId = `waitingRoom${storeId}`;
-
-        const membersAffected = await redisCli
-            .multi()
-            .lrem(myWaitingRoomId, 0, waitingRoomRequestId)
-            .execAsync();
-
-        return membersAffected[0];
-    } catch (err) {
-        throw err;
-    }
-};
-
-const getWaitingRoom = async storeId => {
-    try {
-        const myWaitingRoomId = `waitingRoom${storeId}`;
-
-        const waitingRoom = await redisCli
-            .multi()
-            .lrange(myWaitingRoomId, 0, -1)
-            .execAsync();
-
-        return waitingRoom[0];
-    } catch (err) {
-        throw err;
-    }
-};
-
-const setState = async (waitingRoomRequestId, state) => {
-    try {
-        const now = new Date().toISOString();
-
-        const resultState = await pool.query(
-            `UPDATE waiting_room_requests SET state='${state}' WHERE waiting_room_request_id='${waitingRoomRequestId}';`
-        );
-
-        const resultLog = await pool.query(
-            `INSERT INTO waiting_room_log(waiting_room_request_id, state, created_on) VALUES('${waitingRoomRequestId}', '${state}', '${now}');`
-        );
-
-        return resultState.rows;
-    } catch (err) {
-        console.log('ERROR query setState');
-        throw new Error(err.message);
+const subscribeQueues = async redisCli => {
+    const waitingRooms = await getWaitingRooms();
+    for await (const waitingRoom of waitingRooms) {
+        redisCli.subscribe(waitingRoom.waitingRoomId);
     }
 };
 
 module.exports = {
-    getQueue,
-    findCallRequestInQueue,
-    findCallRequestInQueueByEmail,
+    getWaitingRooms,
     getWaitingRoomByStoreId,
+    getQueue,
     pushCallRequestInQueue,
     removeCallRequestInQueue,
-    getRequest,
-    addRequest,
-    pushClient,
-    removeClient,
-    getWaitingRoom,
-    setState,
-    searchRequests,
+    findCallRequestInQueueByEmail,
+    findCallRequestInQueue,
+    broadcastQueue,
+    subscribeQueues,
 };

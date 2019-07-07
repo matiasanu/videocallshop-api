@@ -8,7 +8,7 @@ const REDIS_URL = process.env.REDIS_URL;
 promise.promisifyAll(redis.RedisClient.prototype);
 promise.promisifyAll(redis.Multi.prototype);
 
-let client = () => {
+const createClient = () => {
     return new Promise((resolve, reject) => {
         let connector = redis.createClient(REDIS_URL);
 
@@ -24,4 +24,4 @@ let client = () => {
     });
 };
 
-module.exports = client;
+module.exports = { createClient };
