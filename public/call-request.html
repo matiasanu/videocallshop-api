@@ -125,7 +125,10 @@
                 $('#callRequestData').on('click', '#cancelCallResquest', ev => {
                     $.ajax({
                         url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
-                        type: 'DELETE'
+                        type: 'DELETE',
+                        beforeSend: function(request) {
+                            request.setRequestHeader("Authorization", token);
+                        },
                     }).then(() => {
                         $("#fadeMessage").text("Call Request cancelled");
                         $("#fadeMessage").fadeOut(6000);

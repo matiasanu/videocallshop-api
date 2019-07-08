@@ -1,15 +1,14 @@
 const pool = require('../helpers/postgres');
 
 const getCall = async callId => {
-    try {
-        const result = await pool.query(
-            `SELECT * FROM calls c WHERE c.call_id='${callId}' LIMIT 1;`
-        );
+    const result = await pool.query(
+        `SELECT * FROM calls c WHERE c.call_id='${callId}' LIMIT 1;`
+    );
 
-        return result.rows.length ? result.rows[0] : null;
-    } catch (err) {
-        console.log('ERROR query getStore');
-        throw new Error(err.message);
+    if (result.rows.length) {
+        return result.rows[0];
+    } else {
+        throw new Error('Call was not found.');
     }
 };
 

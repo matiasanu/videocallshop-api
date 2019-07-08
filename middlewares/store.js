@@ -1,8 +1,8 @@
 const storeModel = require('../models/store');
 
 const storeExists = async (req, res, next) => {
-    const err = new Error('Store does not exists');
-    err.status = 404;
+    const err = new Error('Store does not exist.');
+    err.status = 400;
 
     const storeId = req.params.storeId || req.body.storeId;
     if (!storeId) {

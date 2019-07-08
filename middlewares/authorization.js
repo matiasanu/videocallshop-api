@@ -75,12 +75,12 @@ const checkAuthorization = async (req, res, next) => {
         if (callIdRequested) {
             callIdRequested = parseInt(callIdRequested);
 
-            const callRequested = await callModel.getCall(callIdRequested);
-            if (callRequested) {
+            try {
+                const callRequested = await callModel.getCall(callIdRequested);
                 authorization.callRequestToken.thisCall =
                     parseInt(req.jwtDecoded.callRequestId) ===
                     parseInt(callRequested.callRequestId);
-            }
+            } catch (e) {}
         }
     }
 

@@ -11,36 +11,31 @@ const callExists = async (req, res, next) => {
     }
 
     const call = await callModel.getCall(callId);
-    if (!call) {
-        return next(err);
-    }
 
     next();
 };
 
 const isCallFromStore = async (req, res, next) => {
-    const err = new Error('Unauthorized.');
-    err.status = 401;
+    try {
+        const callId = req.params.callId || req.body.callId;
+        const storeId = req.params.storeId || req.body.storeId;
+        const call = await callModel.getCall(callId);
+        const callRequest = await callRequestModel.getCallRequest(call.callId);
 
-    const callId = req.params.callId || req.body.callId;
-    const storeId = req.params.storeId || req.body.storeId;
-    const call = await callModel.getCall(callId);
-    if (!call) {
-        const err = new Error('Call does not exist.');
-        err.status = 404;
-        return next(err);
+        if (
+            !callId ||
+            !storeId ||
+            parseInt(storeId) !== parseInt(callRequest.storeId)
+        ) {
+            throw new Error('Unauthorized.');
+        }
+
+        next();
+    } catch (err) {
+        const myErr = new Error('Bad Request.');
+        myErr.status = 400;
+        return next(myErr);
     }
-    const callRequest = await callRequestModel.getCallRequest(call.callId);
-
-    if (
-        !callId ||
-        !storeId ||
-        parseInt(storeId) !== parseInt(callRequest.storeId)
-    ) {
-        return next(err);
-    }
-
-    next();
 };
 
 module.exports = {

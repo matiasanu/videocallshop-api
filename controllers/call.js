@@ -6,48 +6,51 @@ const waitingRoomModel = require('../models/waitingRoom');
 const CALLED = 'CALLED';
 
 const getCall = async (req, res, next) => {
+    // authorization
     try {
-        // authorization
         const hasAccess =
             req.authorization.storeUser.thisStore ||
             (req.authorization.callRequestToken.thisStore &&
                 req.authorization.callRequestToken.thisCall);
 
         if (!hasAccess) {
-            const err = new Error('Unauthorized.');
-            err.status = 404;
-            return next(err);
+            throw new Error('Unauthorized.');
         }
+    } catch (err) {
+        const myErr = new Error('Unauthorized.');
+        myErr.status = 401;
+        return next(myErr);
+    }
 
+    try {
         const { callId } = req.params;
         const call = await callModel.getCall(callId);
-        if (!call) {
-            throw new Error('Call does not exist.');
-        }
 
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
     } catch (err) {
-        //Logger
-        console.log('ERROR - getCall fn', err);
-        let myErr = new Error('Can not process the request.');
-        myErr.status = 500;
+        let myErr = new Error('Not found.');
+        myErr.status = 404;
         return next(myErr);
     }
 };
 
 const callClient = async (req, res, next) => {
+    // authorization
     try {
-        // authorization
         const hasAccess = req.authorization.storeUser.thisStore;
 
         if (!hasAccess) {
             const err = new Error('Unauthorized.');
-            err.status = 404;
-            return next(err);
         }
+    } catch (err) {
+        let myErr = new Error('Unauthorized');
+        myErr.status = 401;
+        return next(myErr);
+    }
 
+    try {
         const { storeId } = req.params;
         const { callRequestId } = req.body;
 
@@ -57,7 +60,7 @@ const callClient = async (req, res, next) => {
 
         if (!inQueue) {
             const err = new Error('Call request does not in queue.');
-            err.status = 422;
+            err.status = 400;
             return next(err);
         }
 
@@ -87,10 +90,8 @@ const callClient = async (req, res, next) => {
         res.status(status);
         res.send({ status, data: call });
     } catch (err) {
-        //Logger
-        console.log('ERROR - callClient fn', err);
-        let myErr = new Error('Can not process the request.');
-        myErr.status = 500;
+        let myErr = new Error('Bad Request.');
+        myErr.status = 400;
         return next(myErr);
     }
 };
