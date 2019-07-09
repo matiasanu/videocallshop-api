@@ -35,6 +35,32 @@ const getCall = async (req, res, next) => {
     }
 };
 
+const getCalls = async (req, res, next) => {
+    // authorization
+    try {
+        const hasAccess = req.authorization.storeUser.thisStore;
+        if (!hasAccess) {
+            throw new Error('Unauthorized.');
+        }
+    } catch (err) {
+        const myErr = new Error('Unauthorized.');
+        myErr.status = 401;
+        return next(myErr);
+    }
+
+    try {
+        const { storeId } = req.params;
+        const calls = await callModel.getCallsByStoreId(storeId);
+
+        const status = 200;
+        res.status(status);
+        res.send({ status, data: calls });
+    } catch (err) {
+        err.status = 500;
+        return next(err);
+    }
+};
+
 const callClient = async (req, res, next) => {
     // authorization
     try {
@@ -97,4 +123,5 @@ const callClient = async (req, res, next) => {
 module.exports = {
     callClient,
     getCall,
+    getCalls,
 };

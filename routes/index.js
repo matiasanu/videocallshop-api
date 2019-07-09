@@ -97,6 +97,15 @@ router.post(
 );
 
 router.get(
+    '/stores/:storeId/calls',
+    [check('storeId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    authorizationMidd.checkAuthorization,
+    callCtrl.getCalls
+);
+
+router.get(
     '/stores/:storeId/calls/:callId',
     [check('storeId').isInt(), check('callId').isInt()],
     paramsValidatorMidd.validateParams,

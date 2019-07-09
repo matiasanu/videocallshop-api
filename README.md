@@ -138,9 +138,22 @@ storeUser.thisStore
 - 200 - OK.
 
 ### `GET` - `/stores/:storeId/calls/:callId`
+Get a particular call.
 
 ###### Auth
 storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.thisCall)
+
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
+
+### `GET` - `/stores/:storeId/calls`
+Get the calls from the store.
+
+###### Auth
+storeUser.thisStore
 
 ###### Status codes
 - 422 - Unprocessable Entity: Bad params.

@@ -12,6 +12,20 @@ const getCall = async callId => {
     }
 };
 
+const getCallsByStoreId = async storeId => {
+    try {
+        const result = await pool.query(
+            `SELECT * FROM calls c INNER JOIN call_requests cr ON cr.call_request_id = c.call_request_id WHERE cr.store_id='${storeId}' LIMIT 1;`
+        );
+
+        return result.rows;
+    } catch (err) {
+        console.log(err);
+        console.log('ERROR query getCallsByStoreId');
+        throw new Error(err.message);
+    }
+};
+
 const registerCall = async (callRequestId, tokboxSessionId, storeUserId) => {
     try {
         const now = new Date().toISOString();
@@ -31,4 +45,5 @@ const registerCall = async (callRequestId, tokboxSessionId, storeUserId) => {
 module.exports = {
     getCall,
     registerCall,
+    getCallsByStoreId,
 };
