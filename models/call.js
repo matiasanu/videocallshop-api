@@ -15,7 +15,7 @@ const getCall = async callId => {
 const getCallsByStoreId = async storeId => {
     try {
         const result = await pool.query(
-            `SELECT * FROM calls c INNER JOIN call_requests cr ON cr.call_request_id = c.call_request_id WHERE cr.store_id='${storeId}' LIMIT 1;`
+            `SELECT * FROM calls c INNER JOIN call_requests cr ON cr.call_request_id = c.call_request_id WHERE cr.store_id='${storeId}';`
         );
 
         return result.rows;
