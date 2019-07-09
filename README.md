@@ -112,15 +112,18 @@ storeUser.thisStore || callRequestToken.thisStore && callRequestToken.inQueue
 - 401 - Unauthorized.
 - 200 - OK.
 
-### `WebSocket` - `/stores/:storeId/waiting-room`
+### `WebSocket` - `/waiting-room-socket`
 Connect with waiting room.
 
 ###### Events emitted
-`WAITING_ROOM_SENDED`: Emmit the hole waiting room for first time.
-`QUEUE_CHANGED`: Emmit only the queue.
+- `WAITING_ROOM_SENDED`: Emmit the hole waiting room for first time.
+- `QUEUE_CHANGED`: Emmit only the queue.
 
 ###### Auth
-storeUser.thisStore || callRequestToken.thisStore && callRequestToken.inQueue
+storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.inQueue)
+
+###### Notes
+Pass storeId query param.
 
 ### `POST` - `/stores/:storeId/calls`
 Call a call request.
