@@ -17,10 +17,11 @@ const session = expressSession({
     sharedsession = require('express-socket.io-session');
 const bodyParser = require('body-parser');
 
-// helpers, controllers & models
-const initRedisCli = require('./helpers/redis');
+// helpers, controllers, models, middlewares
+const redisHelper = require('./helpers/redis');
+const authorizationSocketMidd = require('./middlewares/authorizationSocket');
+const waitingRoomModel = require('./models/waitingRoom');
 const waitingRoomCtrl = require('./controllers/waitingRoom');
-const storeModel = require('./models/store');
 
 const routes = require('./routes/index');
 
@@ -34,8 +35,13 @@ app.use(cookieParser());
 app.use(session);
 app.use('/', routes);
 app.use(function(err, req, res, next) {
+    console.log(err);
     res.status(err.status || 500);
-    res.send({ status: err.status, message: err.message });
+    res.send({
+        status: err.status,
+        message:
+            err.status === 500 ? 'Can not process the request.' : err.message,
+    });
 });
 
 // run server
@@ -47,15 +53,10 @@ app.use(function(err, req, res, next) {
         });
 
         io.use(sharedsession(session)); // Share session with io sockets
-        io.use(waitingRoomCtrl.socketMiddleware);
+        io.use(authorizationSocketMidd.checkAuthorization);
 
-        const redisCli = await initRedisCli();
-        const stores = await storeModel.getStores();
-
-        // subscribe nodejs to redis channels
-        stores.forEach(store => {
-            redisCli.subscribe(`waitingRoom${store.storeId}`);
-        });
+        const redisCli = await redisHelper.createClient();
+        await waitingRoomModel.subscribeQueues(redisCli);
 
         redisCli.on('message', async (channel, message) => {
             message = JSON.parse(message);
@@ -66,7 +67,7 @@ app.use(function(err, req, res, next) {
                 .emit(message.type, message.value);
         });
 
-        io.on('connection', waitingRoomCtrl.socketConnection);
+        io.on('connection', waitingRoomCtrl.getWaitingRoomBySocket);
 
         // listen nodejs
         const PORT = process.env.PORT || 3000;

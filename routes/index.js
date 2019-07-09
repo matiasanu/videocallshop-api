@@ -3,10 +3,19 @@ const router = express.Router();
 
 const { check } = require('express-validator/check');
 
+// controllers
 const authenticationCtrl = require('../controllers/authentication');
-const validatorCtrl = require('../controllers/validator');
 const storeCtrl = require('../controllers/store');
 const waitingRoomCtrl = require('../controllers/waitingRoom');
+const callCtrl = require('../controllers/call');
+const callRequestCtrl = require('../controllers/callRequest');
+
+// middlewares
+const paramsValidatorMidd = require('../middlewares/paramsValidator');
+const authorizationMidd = require('../middlewares/authorization');
+const storeMidd = require('../middlewares/store');
+const callRequestMidd = require('../middlewares/callRequest');
+const callMidd = require('../middlewares/call');
 
 // hello
 router.get('/', ({ res }) => res.send('videocallshop-api available'));
@@ -15,60 +24,86 @@ router.get('/', ({ res }) => res.send('videocallshop-api available'));
 router.post(
     '/authentication/store',
     [check('email').isEmail()],
-    validatorCtrl.validateParams,
-    authenticationCtrl.authenticateUserStore
+    paramsValidatorMidd.validateParams,
+    authenticationCtrl.authenticateStoreUser
 );
 
-// store
-router.get('/store', storeCtrl.getStores);
+// stores
+router.get('/stores', storeCtrl.getStores);
+
 router.get(
-    '/store/:storeId',
+    '/stores/:storeId',
     [check('storeId').isInt()],
-    validatorCtrl.validateParams,
+    paramsValidatorMidd.validateParams,
     storeCtrl.getStore
 );
 
-// waiting room
+// call requests
 router.post(
-    '/store/:storeId/waiting-room',
+    '/stores/:storeId/call-requests',
     [
         check('storeId').isInt(),
         check('email').isEmail(),
         check('name').matches(/^[a-z ]+$/i),
         check('lastName').matches(/^[a-z ]+$/i),
     ],
-    validatorCtrl.validateParams,
-    waitingRoomCtrl.pushClient
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestCtrl.createCallRequest
 );
+
 router.get(
-    '/store/:storeId/waiting-room',
+    '/stores/:storeId/call-requests/:callRequestId',
+    [check('storeId').isInt(), check('callRequestId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    callRequestCtrl.getCallRequest
+);
+
+router.delete(
+    '/stores/:storeId/call-requests/:callRequestId',
+    [check('storeId').isInt(), check('callRequestId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    callRequestCtrl.cancelCallRequest
+);
+
+// waiting room
+router.get(
+    '/stores/:storeId/waiting-room',
     [check('storeId').isInt()],
-    validatorCtrl.validateParams,
-    authenticationCtrl.isClientInQueueOrStoreUserOwner,
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    authorizationMidd.checkAuthorization,
     waitingRoomCtrl.getWaitingRoom
 );
+
+// calls
+router.post(
+    '/stores/:storeId/calls',
+    [check('storeId').isInt(), check('callRequestId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    callCtrl.callClient
+);
+
 router.get(
-    '/store/:storeId/waiting-room/:waitingRoomRequestId',
-    [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
-    validatorCtrl.validateParams,
-    authenticationCtrl.isClientInQueueOrStoreUserOwner,
-    waitingRoomCtrl.isValidRequest,
-    waitingRoomCtrl.getResquest
-);
-router.delete(
-    '/store/:storeId/waiting-room/:waitingRoomRequestId',
-    [check('storeId').isInt(), check('waitingRoomRequestId').isInt()],
-    validatorCtrl.validateParams,
-    authenticationCtrl.isClientOwnerOrStoreUserOwner,
-    waitingRoomCtrl.isValidRequest,
-    waitingRoomCtrl.removeClient
-);
-router.delete(
-    '/store/:storeId/waiting-room',
-    [check('storeId').isInt()],
-    validatorCtrl.validateParams,
-    authenticationCtrl.isStoreUserOwner,
-    waitingRoomCtrl.removeAll
+    '/stores/:storeId/calls/:callId',
+    [check('storeId').isInt(), check('callId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callMidd.isCallFromStore,
+    authorizationMidd.checkAuthorization,
+    callCtrl.getCall
 );
 
 module.exports = router;

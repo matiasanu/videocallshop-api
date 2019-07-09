@@ -6,7 +6,7 @@ const getStore = async storeId => {
             `SELECT * FROM stores s WHERE s.store_id='${storeId}' LIMIT 1;`
         );
 
-        return result.rows;
+        return result.rows.length ? result.rows[0] : null;
     } catch (err) {
         console.log('ERROR query getStore');
         throw new Error(err.message);

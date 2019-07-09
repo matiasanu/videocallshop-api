@@ -1,0 +1,146 @@
+<script src="js/socket.io.dev.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+
+<script>
+    var callRequests = [];
+    var storeId = null;
+
+    const getJsonFromUrl = url => {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(part => {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    const updateCallRequestLabel = (callResquest) => {
+        const label = callResquest.callRequestId + ' - ' + callResquest.name + ' ' + callResquest.lastName + ' - ' + callResquest.email;
+        $("#" + callResquest.callRequestId).find('.data').html(label);
+    };
+
+    const getCallRequestDataFromApi = (callRequestId, callback) => {
+        return $.get({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId,
+            }
+        );
+    };
+
+    const renderQueue = queue => {
+        // restart the waiting room queue
+        $("#queue").html("");
+
+        // iterate each call request
+        $.each(queue, (index, callRequestId) => {
+            // append element with "loading..." state
+            $("#queue").append('<p id="' + callRequestId +'"><span class="data">' + callRequestId + ' - ' + 'loading...' + '</span> <button class="cancelCallResquest">Cancel</button></p>');
+
+            // get request from memory
+            var callRequest = callRequests[callRequestId];
+            if(!callRequest) {
+                // request from memory not found, get from api
+                getCallRequestDataFromApi(callRequestId)
+                    .then(response => {
+                        const callRequestData = response.data;
+                        // store call request fetched on memory
+                        callRequests[callRequestData.callRequestId] = callRequestData;
+                        updateCallRequestLabel(callRequestData);
+                    });
+            } else {
+                updateCallRequestLabel(callRequest);
+            }
+        });
+    };
+
+    $( document ).ready(() => {
+        $('#queue').on('click', '.cancelCallResquest', ev => {
+            const callRequestId = ev.currentTarget.parentElement.id;
+            $.ajax({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
+                type: 'DELETE'
+            }).then(() => {
+                $("#fadeMessage").text("Call Request cancelled");
+                $("#fadeMessage").fadeOut(6000);
+
+            }).catch(res => {
+                if(res.responseJSON) {
+                    alert("ERROR cancelling the call request: " + res.responseJSON.message);
+                } else {
+                    alert("ERROR occurred, check network tab console");
+                }
+
+            });
+        });
+
+        var params = getJsonFromUrl();
+        var email = params.email;
+        var password = params.password;
+
+        if(!email || !password) {
+            $('#invalidParams').show();
+            return ;
+        }
+
+        $("#email").html(email);
+        $.post(
+            '/authentication/store', // url
+            { email, password }, // params
+            (response, textStatus, request) => { // callback
+                storeId = response.data.storeId;
+                $("#storeId").html(storeId);
+                $("#removeAllBtn").show();
+
+                var socket = io(
+                    '?storeId='+ storeId,
+                    {
+                        path: '/waiting-room-socket'
+                    }
+                );
+
+                socket.on('disconnect', () => {
+                    $("#socketStatus").html("<span style='color: darkred'>SOCKET DISCONNECTED</span>")
+                });
+
+                socket.on('connect', () => {
+                    $("#socketStatus").html("<span style='color: green'>SOCKET CONNECTED</span>")
+                });
+
+                socket.on('WAITING_ROOM_SENDED', waitingRoom => {
+                    console.log('WAITING_ROOM_SENDED',  waitingRoom.queue);
+                    renderQueue(waitingRoom.queue);
+                });
+
+                socket.on('QUEUE_CHANGED', queue => {
+                    console.log('QUEUE_CHANGED', queue);
+                    renderQueue(queue);
+                });
+            }
+        ).fail(response => {
+            console.log(response);
+            alert( response.responseJSON.message );
+        });
+
+    });
+</script>
+<html>
+    <body>
+        <div style="display: none;" id="invalidParams">
+            <h1 style="color: darkred">Error - Required uri: ?email=alemmartin@gmail.com&password=sonserios10</h1>
+        </div>
+
+        <div style="text-align: center">
+            <h1 style="text-align: center">TIENDA ID: <span id="storeId"></span></h1>
+            <h3><span id="socketStatus"></span></h3>
+            <h2 id="fadeMessage" style="color: orangered"></h2>
+        </div>
+        <hr/>
+
+        <h3>STORE USER</h3>
+        <p id="email"></p>
+
+        <h3>QUEUE</h3>
+        <p><span id="queue"></span></p>
+    </body>
+</html>

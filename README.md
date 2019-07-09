@@ -1,14 +1,18 @@
 # videocallshop API
 
-## public tools and resources
+## Public tools and resources
 ### `BASE_URL`/videocallshop-api.json
 JSON with API method definitions for `Advanced REST client` (https://install.advancedrestclient.com/install).
 
-### `BASE_URL`/client.html
-Tool to enter in a waiting room as a client.
+### `BASE_URL`/call-request.html
+Client to enter in a waiting room as a client.
 
-### `BASE_URL`/store.html
-Tool to loggin as a store user and watch the queue.
+### `BASE_URL`/store-user.html
+Client to loggin as a store user, watch the queue and performs store user actions.
+
+## Utils
+### dev URL
+https://videocallshop-api-dev.herokuapp.com/
 
 ## API methods
 ### `GET` - `/`
@@ -28,20 +32,33 @@ Authenticate a store user.
 ###### Auth
 public
 
-### `GET` - `/store`
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 401 - Unauthorized.
+- 200 - OK.
+
+### `GET` - `/stores`
 Get all the stores.
 
 ###### Auth
 public
 
-### `GET` - `/store/:storeId`
-Get info of a store.
+###### Status codes
+- 200 - OK
+
+### `GET` - `/stores/:storeId`
+Get info of a particular store.
 
 ###### Auth
 public
 
-### `POST` - `/store/:storeId/waiting-room`
-Enter as a client in a waiting room.
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 200 - OK.
+
+### `POST` - `/stores/:storeId/call-requests`
+Create a call request. It will automatically be added to the queue.
 
 ###### Params
 - email
@@ -51,29 +68,82 @@ Enter as a client in a waiting room.
 ###### Auth
 public
 
-###### Desc
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 200 - OK.
+
+###### Notes
 Returns in a header Authorization a valid JWT Token for 2hs.
 
-### `GET` - `/store/:storeId/waiting-room`
+### `GET` - `/stores/:storeId/call-requests/:callRequestId`
+Get a particular call request.
+
+###### Auth
+storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.inQueue)
+
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
+
+### `DELETE` - `/stores/:storeId/call-requests/:callRequestId`
+Cancel a particular call request.
+
+###### Auth
+storeUser.thisStore || callRequestToken.thisStore && callRequestToken.thisCallRequest
+
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
+
+### `GET` - `/stores/:storeId/waiting-room`
 Get a waiting room.
 
 ###### Auth
-isClientInQueueOrStoreUserOwner
+storeUser.thisStore || callRequestToken.thisStore && callRequestToken.inQueue
 
-### `GET` - `/store/:storeId/waiting-room/:waitingRoomRequestId`
-Get a particular request.
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
 
-###### Auth
-isClientInQueueOrStoreUserOwner
+### `WebSocket` - `/stores/:storeId/waiting-room`
+Connect with waiting room.
 
-### `DELETE` - `/store/:storeId/waiting-room/:waitingRoomRequestId`
-Remove client from the queue.
-
-###### Auth
-isClientOwnerOrStoreUserOwner
-
-### `DELETE` - `/store/:storeId/waiting-room`
-Empty queue.
+###### Events emitted
+`WAITING_ROOM_SENDED`: Emmit the hole waiting room for first time.
+`QUEUE_CHANGED`: Emmit only the queue.
 
 ###### Auth
-isStoreUserOwner
+storeUser.thisStore || callRequestToken.thisStore && callRequestToken.inQueue
+
+### `POST` - `/stores/:storeId/calls`
+Call a call request.
+
+### Params
+- callRequestId
+
+###### Auth
+storeUser.thisStore
+
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
+
+### `GET` - `/stores/:storeId/calls/:callId`
+
+###### Auth
+storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.thisCall)
+
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
