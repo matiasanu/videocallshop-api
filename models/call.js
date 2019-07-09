@@ -26,6 +26,20 @@ const getCallsByStoreId = async storeId => {
     }
 };
 
+const getCallsByStoreUserAndState = async (storeUserId, state) => {
+    try {
+        const result = await pool.query(
+            `SELECT * FROM calls c INNER JOIN call_requests cr ON cr.call_request_id = c.call_request_id WHERE c.store_user_id='${storeUserId}' AND cr.state='${state}' LIMIT 1;`
+        );
+
+        return result.rows;
+    } catch (err) {
+        console.log(err);
+        console.log('ERROR query getCallsByStoreUserAndState');
+        throw new Error(err.message);
+    }
+};
+
 const registerCall = async (callRequestId, tokboxSessionId, storeUserId) => {
     try {
         const now = new Date().toISOString();
@@ -46,4 +60,5 @@ module.exports = {
     getCall,
     registerCall,
     getCallsByStoreId,
+    getCallsByStoreUserAndState,
 };

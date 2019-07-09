@@ -75,6 +75,18 @@ const callClient = async (req, res, next) => {
         return next(myErr);
     }
 
+    // is the store user in call
+    const currentCall = await callModel.getCallsByStoreUserAndState(
+        req.session.storeUser.storeUserId,
+        CALLED
+    );
+
+    if (currentCall.length) {
+        const err = new Error('You are already in call.');
+        err.status = 400;
+        return next(err);
+    }
+
     try {
         const { storeId } = req.params;
         const { callRequestId } = req.body;

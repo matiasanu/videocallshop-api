@@ -4,9 +4,9 @@ const getStore = async (req, res, next) => {
     try {
         const { storeId } = req.params;
 
-        const stores = await storeModel.getStore(storeId);
+        const store = await storeModel.getStore(storeId);
 
-        if (!stores.length) {
+        if (!store) {
             const err = new Error('Store not found.');
             err.status = 404;
             return next(err);
@@ -14,7 +14,7 @@ const getStore = async (req, res, next) => {
 
         const status = 200;
         res.status(status);
-        res.send({ status, data: stores[0] });
+        res.send({ status, data: store });
     } catch (err) {
         err.status = 500;
         return next(err);

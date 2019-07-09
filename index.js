@@ -35,7 +35,10 @@ app.use(cookieParser());
 app.use(session);
 app.use('/', routes);
 app.use(function(err, req, res, next) {
-    console.log(err);
+    if (err.status === 500) {
+        console.log(err);
+    }
+
     res.status(err.status || 500);
     res.send({
         status: err.status,

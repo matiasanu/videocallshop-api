@@ -88,6 +88,7 @@ const checkAuthorization = async (req, res, next) => {
 
     authorization.storeUser.authenticated = !!req.session.storeUser;
     if (authorization.storeUser.authenticated) {
+        // is store requested the same of the store user
         let storeIdRequested =
             (req.params && req.params.storeId) ||
             (req.body && req.body.storeId) ||
