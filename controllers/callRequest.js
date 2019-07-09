@@ -69,11 +69,8 @@ const createCallRequest = async (req, res, next) => {
         res.set('Authorization', 'Bearer ' + jwt);
         res.send({ status, data: callRequestCreated });
     } catch (err) {
-        //Logger
-        console.log('ERROR - createCallRequest fn', err);
-        let myErr = new Error('Can not process the request.');
-        myErr.status = 500;
-        return next(myErr);
+        err.status = 500;
+        return next(err);
     }
 };
 
@@ -123,11 +120,8 @@ const cancelCallRequest = async (req, res, next) => {
         const status = 200;
         res.send({ status });
     } catch (err) {
-        //Logger
-        console.log('ERROR - cancelCallRequest fn', err);
-        let myErr = new Error('Can not process the request.');
-        myErr.status = 500;
-        return next(myErr);
+        err.status = 500;
+        return next(err);
     }
 };
 
@@ -158,11 +152,8 @@ const getCallRequest = async (req, res, next) => {
         const status = 200;
         res.send({ status, data: callRequest });
     } catch (err) {
-        //Logger
-        console.log('ERROR - getCallRequest fn', err);
-        let myErr = new Error('Can not process the request.');
-        myErr.status = 500;
-        return next(myErr);
+        err.status = 500;
+        return next(err);
     }
 };
 

@@ -24,7 +24,6 @@ const getStore = async (req, res, next) => {
 const getStores = async (req, res, next) => {
     try {
         const stores = await storeModel.getStores();
-
         const status = 200;
         res.status(status);
         res.send({ status, data: stores });

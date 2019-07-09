@@ -30,9 +30,8 @@ const getCall = async (req, res, next) => {
         res.status(status);
         res.send({ status, data: call });
     } catch (err) {
-        let myErr = new Error('Not found.');
-        myErr.status = 404;
-        return next(myErr);
+        err.status = 500;
+        return next(err);
     }
 };
 
@@ -42,7 +41,7 @@ const callClient = async (req, res, next) => {
         const hasAccess = req.authorization.storeUser.thisStore;
 
         if (!hasAccess) {
-            const err = new Error('Unauthorized.');
+            throw new Error('Unauthorized.');
         }
     } catch (err) {
         let myErr = new Error('Unauthorized');
@@ -90,9 +89,8 @@ const callClient = async (req, res, next) => {
         res.status(status);
         res.send({ status, data: call });
     } catch (err) {
-        let myErr = new Error('Bad Request.');
-        myErr.status = 400;
-        return next(myErr);
+        err.status = 500;
+        return next(err);
     }
 };
 

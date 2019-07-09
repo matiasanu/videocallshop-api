@@ -2,15 +2,19 @@ const callModel = require('../models/call');
 const callRequestModel = require('../models/callRequest');
 
 const callExists = async (req, res, next) => {
-    const err = new Error('Call does not exists');
-    err.status = 404;
-
     const callId = req.params.callId || req.body.callId;
     if (!callId) {
+        const err = new Error('Call does not exists');
+        err.status = 400;
         return next(err);
     }
 
-    const call = await callModel.getCall(callId);
+    try {
+        const call = await callModel.getCall(callId);
+    } catch (err) {
+        err.status = 400;
+        return next(err);
+    }
 
     next();
 };
@@ -27,14 +31,13 @@ const isCallFromStore = async (req, res, next) => {
             !storeId ||
             parseInt(storeId) !== parseInt(callRequest.storeId)
         ) {
-            throw new Error('Unauthorized.');
+            throw new Error('Call is not from the store.');
         }
 
         next();
     } catch (err) {
-        const myErr = new Error('Bad Request.');
-        myErr.status = 400;
-        return next(myErr);
+        err.status = 400;
+        return next(err);
     }
 };
 

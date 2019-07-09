@@ -23,10 +23,9 @@ const getWaitingRoom = async (req, res, next) => {
         const waitingRoom = await waitingRoomModel.getWaitingRoomByStoreId(
             storeId
         );
+
         if (!waitingRoom) {
-            const err = new Error('Store does not have waiting room.');
-            err.status = 500;
-            return next(err);
+            throw new Error('Store does not have waiting room.');
         }
 
         waitingRoom.queue = await waitingRoomModel.getQueue(
