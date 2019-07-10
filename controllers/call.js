@@ -38,7 +38,9 @@ const getCall = async (req, res, next) => {
 const getCalls = async (req, res, next) => {
     // authorization
     try {
-        const hasAccess = req.authorization.storeUser.thisStore;
+        const hasAccess =
+            req.authorization.storeUser.thisStore ||
+            req.authorization.callRequestToken.thisCallRequest;
         if (!hasAccess) {
             throw new Error('Unauthorized.');
         }
@@ -50,7 +52,21 @@ const getCalls = async (req, res, next) => {
 
     try {
         const { storeId } = req.params;
-        const calls = await callModel.getCallsByStoreId(storeId);
+        let filters = {};
+
+        if (req.query.callRequestId) {
+            filters.callRequestId = req.query.callRequestId;
+        }
+
+        if (req.query.storeUserId) {
+            filters.storeUserId = req.query.storeUserId;
+        }
+
+        if (req.query.state) {
+            filters.state = req.query.state;
+        }
+
+        const calls = await callModel.findCallsByStoreId(storeId, filters);
 
         const status = 200;
         res.status(status);

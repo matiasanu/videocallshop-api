@@ -158,8 +158,13 @@ storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.thisCall)
 ### `GET` - `/stores/:storeId/calls`
 Get the calls from the store.
 
+### Query Params (optional filters)
+- callRequestId
+- storeUserId
+- state=[NEW | IN_QUEUE | CANCELLED | CALLED]
+
 ###### Auth
-storeUser.thisStore
+storeUser.thisStore || callRequestToken.thisCallRequest;
 
 ###### Status codes
 - 422 - Unprocessable Entity: Bad params.

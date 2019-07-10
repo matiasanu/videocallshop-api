@@ -12,16 +12,28 @@ const getCall = async callId => {
     }
 };
 
-const getCallsByStoreId = async storeId => {
+const findCallsByStoreId = async (storeId, filters) => {
+    let query = `SELECT c.* FROM calls c INNER JOIN call_requests cr ON cr.call_request_id = c.call_request_id WHERE cr.store_id='${storeId}'`;
+
+    if (filters.state) {
+        query += `AND cr.state='${filters.state}'`;
+    }
+
+    if (filters.callRequestId) {
+        query += `AND c.call_request_id='${filters.callRequestId}'`;
+    }
+
+    if (filters.storeUserId) {
+        query += `AND c.store_user_id='${filters.storeUserId}'`;
+    }
+
     try {
-        const result = await pool.query(
-            `SELECT * FROM calls c INNER JOIN call_requests cr ON cr.call_request_id = c.call_request_id WHERE cr.store_id='${storeId}';`
-        );
+        const result = await pool.query(query);
 
         return result.rows;
     } catch (err) {
         console.log(err);
-        console.log('ERROR query getCallsByStoreId');
+        console.log('ERROR query findCallsByStoreId');
         throw new Error(err.message);
     }
 };
@@ -59,6 +71,6 @@ const registerCall = async (callRequestId, tokboxSessionId, storeUserId) => {
 module.exports = {
     getCall,
     registerCall,
-    getCallsByStoreId,
     getCallsByStoreUserAndState,
+    findCallsByStoreId,
 };

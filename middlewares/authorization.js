@@ -6,7 +6,7 @@ const checkAuthorization = async (req, res, next) => {
     let authorization = {
         callRequestToken: {
             valid: false,
-            thisStore: false, // is from the storerequested
+            thisStore: false, // is from the store requested
             thisCallRequest: false, // if req request info of callRequest and is owner
             thisCall: false, // if req request info of call and is owner
             inQueue: false,
@@ -61,7 +61,9 @@ const checkAuthorization = async (req, res, next) => {
         // is call request requested requested the same of the jwt
         let callRequestIdRequested =
             (req.params && req.params.callRequestId) ||
-            (req.body && req.body.callRequestId);
+            (req.body && req.body.callRequestId) ||
+            (req.query && req.query.callRequestId);
+
         if (callRequestIdRequested) {
             callRequestIdRequested = parseInt(callRequestIdRequested);
 
