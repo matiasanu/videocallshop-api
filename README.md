@@ -71,6 +71,7 @@ public
 ###### Status codes
 - 422 - Unprocessable Entity: Bad params.
 - 400 - Bad Request.
+- 409 - Conflict. message: 'Email already in use.'.
 - 200 - OK.
 
 ###### Notes
@@ -138,6 +139,8 @@ storeUser.thisStore
 - 422 - Unprocessable Entity: Bad params.
 - 400 - Bad Request.
 - 401 - Unauthorized.
+- 409 - Conflict. message: "You are already in call."
+- 409 - Conflict. message: "Call request does not in queue."
 - 200 - OK.
 
 ### `GET` - `/stores/:storeId/calls/:callId`

@@ -83,7 +83,7 @@ const callClient = async (req, res, next) => {
 
     if (currentCall.length) {
         const err = new Error('You are already in call.');
-        err.status = 400;
+        err.status = 409;
         return next(err);
     }
 
@@ -97,7 +97,7 @@ const callClient = async (req, res, next) => {
 
         if (!inQueue) {
             const err = new Error('Call request does not in queue.');
-            err.status = 400;
+            err.status = 409;
             return next(err);
         }
 
