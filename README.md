@@ -71,7 +71,7 @@ public
 ###### Status codes
 - 422 - Unprocessable Entity: Bad params.
 - 400 - Bad Request.
-- 409 - Conflict. message: 'Email already in use.'.
+- 409 - Conflict. message: 'Email already in use.'
 - 200 - OK.
 
 ###### Notes
