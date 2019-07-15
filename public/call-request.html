@@ -1,0 +1,178 @@
+<script src="js/socket.io.dev.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+
+<script>
+    var callRequests = [];
+    var token = null;
+    var storeId = null;
+    var email = null;
+    var name = null;
+    var lastName = null;
+
+    function getJsonFromUrl(url) {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    const updateCallRequestLabel = (callResquest) => {
+        const label = callResquest.callRequestId + ' - ' + callResquest.name + ' ' + callResquest.lastName + ' - ' + callResquest.email;
+        $("#" + callResquest.callRequestId).html(label);
+    };
+
+    const getCallRequestDataFromApi = (callRequestId, callback) => {
+        return $.get({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId,
+                beforeSend: function(request) {
+                    request.setRequestHeader("Authorization", token);
+                },
+            }
+        );
+    };
+
+    const renderQueue = queue => {
+        // restart the waiting room queue
+        $("#queue").html("");
+
+        // iterate each call request
+        $.each(queue, (index, callRequestId) => {
+            // append element with "loading..." state
+            $("#queue").append('<p id="' + callRequestId + '">' + callRequestId + ' - ' + 'loading...' + '</p>');
+
+            // get request from memory
+            var callRequest = callRequests[callRequestId];
+            if(!callRequest) {
+                // request from memory not found, get from api
+                getCallRequestDataFromApi(callRequestId)
+                    .then(response => {
+                        const callRequestData = response.data;
+                        // store call request fetched on memory
+                        callRequests[callRequestData.callRequestId] = callRequestData;
+                        updateCallRequestLabel(callRequestData);
+                    });
+            } else {
+                updateCallRequestLabel(callRequest);
+            }
+        });
+    };
+
+    $( document ).ready(function() {
+        var params = getJsonFromUrl();
+
+        storeId = params.storeId;
+        email = params.email;
+        name = params.name;
+        lastName = params.lastName;
+
+        if(!storeId || !email || !name || !lastName) {
+            $('#invalidParams').show();
+            return ;
+        }
+
+        $("#storeId").html(storeId);
+
+        $.post(
+            '/stores/' + storeId + '/call-requests', // url
+            { email, name, lastName }, // params
+            (response, textStatus, request) => { // callback
+                token = request.getResponseHeader('Authorization');
+                $("#token").html(token);
+
+                const callRequestId = response.data.callRequestId;
+                $("#callRequestId").html(callRequestId);
+                $("#callRequestData").html(JSON.stringify(response.data) + '<p><button id="cancelCallResquest">Cancel</button></p>');
+
+                var socket = io(
+                    '?storeId='+ storeId,
+                    {
+                        path: '/waiting-room-socket',
+                        extraHeaders: {
+                            Authorization: token
+                        },
+                        transportOptions: {
+                            polling: {
+                                extraHeaders: {
+                                    Authorization: token
+                                }
+                            }
+                        }
+                    }
+                );
+
+                socket.on('disconnect', () => {
+                    $("#socketStatus").html("<span style='color: darkred'>SOCKET DISCONNECTED</span>")
+                });
+
+                socket.on('connect', () => {
+                    $("#socketStatus").html("<span style='color: green'>SOCKET CONNECTED</span>")
+                });
+
+                socket.on('WAITING_ROOM_SENDED', function(waitingRoom){
+                    console.log('WAITING_ROOM_SENDED',  waitingRoom);
+                    renderQueue(waitingRoom.queue);
+                });
+
+                socket.on('QUEUE_CHANGED', function(queue){
+                    console.log('QUEUE_CHANGED', queue);
+                    renderQueue(queue);
+                });
+
+                $('#callRequestData').on('click', '#cancelCallResquest', ev => {
+                    $.ajax({
+                        url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
+                        type: 'DELETE',
+                        beforeSend: function(request) {
+                            request.setRequestHeader("Authorization", token);
+                        },
+                    }).then(() => {
+                        $("#fadeMessage").text("Call Request cancelled");
+                        $("#fadeMessage").fadeOut(6000);
+                        $("#cancelCallResquest").hide();
+                        $("#callRequestData").append("<p style='color: darkred'><b>DELETED</b></p>");
+                    }).catch(res => {
+                        if(res.responseJSON) {
+                            alert("ERROR cancelling the call request: " + res.responseJSON.message);
+                        } else {
+                            alert("ERROR occurred, check network tab console");
+                        }
+
+                    });
+                });
+            }
+        ).fail(function(response) {
+            console.log(response);
+            alert( response.responseJSON.message );
+        });
+    });
+</script>
+<html>
+    <body>
+        <div style="display: none;" id="invalidParams">
+            <h1 style="color: darkred">Error - Required uri: ?storeId=1&email=validemail@gmail.com&name=Juan&lastName=Perez</h1>
+        </div>
+
+        <div style="text-align: center">
+            <h1 style="text-align: center">TIENDA ID: <span id="storeId"></span></h1>
+            <h3><span id="socketStatus"></span></h3>
+            <h2 id="fadeMessage" style="color: orangered"></h2>
+        </div>
+        <hr>
+
+        <h4>MY callRequestId</h4>
+        <p id="callRequestId"></p>
+
+        <h4>Call Request</h4>
+        <p id="callRequestData"></p>
+
+        <h4>Token</h4>
+        <p id="token"></p>
+
+        <h4>QUEUE</h4>
+        <p><span id="queue"></span></p>
+    </body>
+</html>
