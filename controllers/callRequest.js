@@ -130,12 +130,11 @@ const getCallRequest = async (req, res, next) => {
         // authorization
         const hasAccess =
             req.authorization.storeUser.thisStore ||
-            (req.authorization.callRequestToken.thisStore &&
-                req.authorization.callRequestToken.inQueue);
+            req.authorization.callRequestToken.thisStore;
 
         if (!hasAccess) {
             const err = new Error('Unauthorized.');
-            err.status = 404;
+            err.status = 401;
             return next(err);
         }
 
