@@ -143,9 +143,33 @@
 
                     });
                 });
+
+                // Get calls
+                $('#getCalls').on('click', ev => {
+                    if(!callRequestId) {
+                        alert("Not logged in");
+                        return ;
+                    }
+                    $.get({
+                        url: '/stores/' + storeId + '/calls?callRequestId=' + callRequestId + '&state=CALLED', // url
+                        beforeSend: function(request) {
+                            request.setRequestHeader("Authorization", token);
+                        },
+                    }).then(response => {
+                        $("#fadeMessage").text("Watch console");
+                        $("#fadeMessage").fadeOut(6000);
+                        console.log(response.data);
+                    }).catch(res => {
+                        if(res.responseJSON) {
+                            alert("ERROR calling the call request: " + res.responseJSON.message);
+                        } else {
+                            alert("ERROR occurred, check network tab console");
+                        }
+                    });
+                });
             }
         ).fail(function(response) {
-            console.log(response);
+            console.log(response.data);
             alert( response.responseJSON.message );
         });
     });
@@ -158,6 +182,7 @@
 
         <div style="text-align: center">
             <h1 style="text-align: center">TIENDA ID: <span id="storeId"></span></h1>
+            <p><button id="getCalls">Get current calls</button></p>
             <h3><span id="socketStatus"></span></h3>
             <h2 id="fadeMessage" style="color: orangered"></h2>
         </div>

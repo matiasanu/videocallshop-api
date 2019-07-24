@@ -106,7 +106,8 @@
                 '/stores/' + storeId + '/calls?storeUserId' + storeUserId + '&state=CALLED', // url
                 {  } //params
             ).then(response => {
-                alert("See console");
+                $("#fadeMessage").text("Watch console");
+                $("#fadeMessage").fadeOut(6000);
                 console.log(response.data);
             }).catch(res => {
                 if(res.responseJSON) {
@@ -116,8 +117,6 @@
                 }
             });
         });
-
-
 
         var params = getJsonFromUrl();
         var email = params.email;
@@ -165,7 +164,7 @@
                 });
             }
         ).fail(response => {
-            console.log(response);
+            console.log(response.data);
             alert( response.responseJSON.message );
         });
 
