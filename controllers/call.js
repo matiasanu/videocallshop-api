@@ -124,11 +124,16 @@ const callClient = async (req, res, next) => {
         const { storeId } = req.params;
         const { callRequestId } = req.body;
 
-        const inQueue = await waitingRoomModel.findCallRequestInQueue(
+        const {
+            waitingRoomId,
+        } = await waitingRoomModel.getWaitingRoomByStoreId(storeId);
+
+        const membersAffected = await waitingRoomModel.removeCallRequestInQueue(
+            waitingRoomId,
             callRequestId
         );
 
-        if (!inQueue) {
+        if (!membersAffected) {
             const err = new Error('Call request does not in queue.');
             err.status = 409;
             return next(err);
@@ -151,15 +156,6 @@ const callClient = async (req, res, next) => {
             sessionId,
             tokenStoreUser,
             tokenCallRequest
-        );
-
-        const {
-            waitingRoomId,
-        } = await waitingRoomModel.getWaitingRoomByStoreId(storeId);
-
-        await waitingRoomModel.removeCallRequestInQueue(
-            waitingRoomId,
-            callRequestId
         );
 
         await callRequestModel.setState(callRequestId, CALLED);
