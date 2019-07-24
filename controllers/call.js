@@ -137,7 +137,8 @@ const callClient = async (req, res, next) => {
 
         await callRequestModel.setState(callRequestId, CALLED);
 
-        const call = await callModel.getCall(callId);
+        let call = await callModel.getCall(callId);
+        call.token = videocallHelper.generateToken(sessionId);
 
         const status = 200;
         res.status(status);

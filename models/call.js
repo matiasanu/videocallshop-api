@@ -27,6 +27,8 @@ const findCallsByStoreId = async (storeId, filters) => {
         query += `AND c.store_user_id='${filters.storeUserId}'`;
     }
 
+    console.log(query);
+
     try {
         const result = await pool.query(query);
 
