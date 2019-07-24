@@ -26,6 +26,14 @@ const getCall = async (req, res, next) => {
         const { callId } = req.params;
         const call = await callModel.getCall(callId);
 
+        if (!req.authorization.storeUser.thisStore) {
+            delete call.tokboxTokenStoreUser;
+        }
+
+        if (!req.authorization.callRequestToken.thisCall) {
+            delete call.tokboxTokenCallRequest;
+        }
+
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
@@ -67,6 +75,15 @@ const getCalls = async (req, res, next) => {
         }
 
         const calls = await callModel.findCallsByStoreId(storeId, filters);
+        calls.forEach(call => {
+            if (!req.authorization.storeUser.thisStore) {
+                delete call.tokboxTokenStoreUser;
+            }
+
+            if (!req.authorization.callRequestToken.thisCallRequest) {
+                delete call.tokboxTokenCallRequest;
+            }
+        });
 
         const status = 200;
         res.status(status);
@@ -119,11 +136,21 @@ const callClient = async (req, res, next) => {
 
         const { sessionId } = await videocallHelper.createSession();
 
+        const tokenStoreUser = videocallHelper.generateToken(sessionId, {
+            role: 'moderator',
+        });
+
+        const tokenCallRequest = videocallHelper.generateToken(sessionId, {
+            role: 'publisher',
+        });
+
         const storeUserId = req.session.storeUser.storeUserId;
         const callId = await callModel.registerCall(
             callRequestId,
+            storeUserId,
             sessionId,
-            storeUserId
+            tokenStoreUser,
+            tokenCallRequest
         );
 
         const {
@@ -137,8 +164,8 @@ const callClient = async (req, res, next) => {
 
         await callRequestModel.setState(callRequestId, CALLED);
 
-        let call = await callModel.getCall(callId);
-        call.token = videocallHelper.generateToken(sessionId);
+        const call = await callModel.getCall(callId);
+        delete call.tokboxTokenCallRequest;
 
         const status = 200;
         res.status(status);

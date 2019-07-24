@@ -35,7 +35,7 @@
         // iterate each call request
         $.each(queue, (index, callRequestId) => {
             // append element with "loading..." state
-            $("#queue").append('<p id="' + callRequestId +'"><span class="data">' + callRequestId + ' - ' + 'loading...' + '</span> <button class="cancelCallResquest">Cancel</button></p>');
+            $("#queue").append('<p id="' + callRequestId +'"><span class="data">' + callRequestId + ' - ' + 'loading...' + '</span> <button class="cancelCallResquest">Cancel</button><button class="callCallResquest">Call</button</p>');
 
             // get request from memory
             var callRequest = callRequests[callRequestId];
@@ -55,6 +55,7 @@
     };
 
     $( document ).ready(() => {
+        // Cancel call request
         $('#queue').on('click', '.cancelCallResquest', ev => {
             const callRequestId = ev.currentTarget.parentElement.id;
             $.ajax({
@@ -71,6 +72,26 @@
                     alert("ERROR occurred, check network tab console");
                 }
 
+            });
+        });
+
+        // Call call request
+        $('#queue').on('click', '.callCallResquest', ev => {
+            const callRequestId = ev.currentTarget.parentElement.id;
+            $.post(
+                '/stores/' + storeId + '/calls', // url
+                { callRequestId } //params
+            ).then(response => {
+                $("#fadeMessage").text("Call Request called");
+                $("#fadeMessage").fadeOut(6000);
+                alert(JSON.stringify(response.data));
+                console.log(response.data);
+            }).catch(res => {
+                if(res.responseJSON) {
+                    alert("ERROR calling the call request: " + res.responseJSON.message);
+                } else {
+                    alert("ERROR occurred, check network tab console");
+                }
             });
         });
 

@@ -54,12 +54,18 @@ const getCallsByStoreUserAndState = async (storeUserId, state) => {
     }
 };
 
-const registerCall = async (callRequestId, tokboxSessionId, storeUserId) => {
+const registerCall = async (
+    callRequestId,
+    storeUserId,
+    tokboxSessionId,
+    tokenStoreUser,
+    tokenCallRequest
+) => {
     try {
         const now = new Date().toISOString();
 
         const result = await pool.query(
-            `INSERT INTO calls(call_request_id, tokbox_session_id, store_user_id, created_on) VALUES ('${callRequestId}', '${tokboxSessionId}', '${storeUserId}', '${now}') RETURNING call_id;`
+            `INSERT INTO calls(call_request_id, tokbox_session_id, store_user_id, tokbox_token_call_request, tokbox_token_store_user, created_on) VALUES ('${callRequestId}', '${tokboxSessionId}', '${storeUserId}', '${tokenCallRequest}', '${tokenStoreUser}', '${now}') RETURNING call_id;`
         );
 
         return result.rows[0].callId;
