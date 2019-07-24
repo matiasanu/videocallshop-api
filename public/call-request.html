@@ -158,7 +158,6 @@
                     }).then(response => {
                         $("#fadeMessage").text("Watch console");
                         $("#fadeMessage").fadeOut(6000);
-                        console.log(response.data);
                     }).catch(res => {
                         if(res.responseJSON) {
                             alert("ERROR calling the call request: " + res.responseJSON.message);

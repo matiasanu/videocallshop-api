@@ -29,6 +29,24 @@
         );
     };
 
+    const getCalls = () => {
+        $.get(
+            '/stores/' + storeId + '/calls?storeUserId' + storeUserId + '&state=CALLED', // url
+            {  } //params
+        ).then(response => {
+            $("#fadeMessage").text("Watch console");
+            $("#fadeMessage").fadeOut(6000);
+            console.log(response.data);
+            renderCalls(response.data);
+        }).catch(res => {
+            if(res.responseJSON) {
+                alert("ERROR calling the call request: " + res.responseJSON.message);
+            } else {
+                alert("ERROR occurred, check network tab console");
+            }
+        });
+    }
+
     const renderQueue = queue => {
         // restart the waiting room queue
         $("#queue").html("");
@@ -55,9 +73,37 @@
         });
     };
 
+    const renderCalls = calls => {
+        // restart calls
+        $("#calls").html("");
+
+        // iterate each call request
+        $.each(calls, (index, call) => {
+            const callRequestId = call.callRequestId;
+            const callId = call.callId;
+            // append element
+            $("#calls").append('<p id="' + callRequestId +'"><span class="data">' + 'callId: ' + callId + ' - ' + 'callRequestId: ' + callRequestId + '</span> <button class="cancelCallResquest">Cancel</button></p>');
+
+            // get request from memory
+            var callRequest = callRequests[callRequestId];
+            if(!callRequest) {
+                // request from memory not found, get from api
+                getCallRequestDataFromApi(callRequestId)
+                    .then(response => {
+                        const callRequestData = response.data;
+                        // store call request fetched on memory
+                        callRequests[callRequestData.callRequestId] = callRequestData;
+                        updateCallRequestLabel(callRequestData);
+                    });
+            } else {
+                updateCallRequestLabel(callRequest);
+            }
+        });
+    };
+
     $( document ).ready(() => {
         // Cancel call request
-        $('#queue').on('click', '.cancelCallResquest', ev => {
+        $('body').on('click', '.cancelCallResquest', ev => {
             const callRequestId = ev.currentTarget.parentElement.id;
             $.ajax({
                 url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
@@ -65,6 +111,7 @@
             }).then(() => {
                 $("#fadeMessage").text("Call Request cancelled");
                 $("#fadeMessage").fadeOut(6000);
+                getCalls();
 
             }).catch(res => {
                 if(res.responseJSON) {
@@ -86,6 +133,7 @@
                 $("#fadeMessage").text("Call Request called");
                 $("#fadeMessage").fadeOut(6000);
                 alert(JSON.stringify(response.data));
+                getCalls();
                 console.log(response.data);
             }).catch(res => {
                 if(res.responseJSON) {
@@ -102,20 +150,7 @@
                 alert("Not logged in");
                 return ;
             }
-            $.get(
-                '/stores/' + storeId + '/calls?storeUserId' + storeUserId + '&state=CALLED', // url
-                {  } //params
-            ).then(response => {
-                $("#fadeMessage").text("Watch console");
-                $("#fadeMessage").fadeOut(6000);
-                console.log(response.data);
-            }).catch(res => {
-                if(res.responseJSON) {
-                    alert("ERROR calling the call request: " + res.responseJSON.message);
-                } else {
-                    alert("ERROR occurred, check network tab console");
-                }
-            });
+            getCalls();
         });
 
         var params = getJsonFromUrl();
@@ -137,6 +172,8 @@
 
                 $("#storeId").html(storeId);
                 $("#removeAllBtn").show();
+
+                getCalls();
 
                 var socket = io(
                     '?storeId='+ storeId,
@@ -179,7 +216,6 @@
         <div style="text-align: center">
             <h1 style="text-align: center">TIENDA ID: <span id="storeId"></span></h1>
             <h3><span id="socketStatus"></span></h3>
-            <p><button id="getCalls">Get current calls</button></p>
             <h2 id="fadeMessage" style="color: orangered"></h2>
         </div>
         <hr/>
@@ -189,5 +225,8 @@
 
         <h3>QUEUE</h3>
         <p><span id="queue"></span></p>
+
+        <h3>CALLS <button id="getCalls">Get current calls</button></h3>
+        <p><span id="calls"></span></p>
     </body>
 </html>
