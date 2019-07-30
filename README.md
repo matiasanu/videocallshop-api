@@ -161,7 +161,7 @@ Get the calls from the store.
 ### Query Params (optional filters)
 - callRequestId
 - storeUserId
-- state=[NEW | IN_QUEUE | CANCELLED | CALLED]
+- state=[NEW | IN_QUEUE | CANCELLED | CALLED | CALLED | PROCESSING_CALL]
 
 ###### Auth
 storeUser.thisStore || callRequestToken.thisCallRequest;
