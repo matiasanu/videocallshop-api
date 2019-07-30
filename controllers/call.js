@@ -4,6 +4,8 @@ const callRequestModel = require('../models/callRequest');
 const waitingRoomModel = require('../models/waitingRoom');
 
 const CALLED = 'CALLED';
+const PROCESSING_CALL = 'PROCESSING_CALL';
+const IN_QUEUE = 'IN_QUEUE';
 
 const getCall = async (req, res, next) => {
     // authorization
@@ -120,24 +122,29 @@ const callClient = async (req, res, next) => {
         return next(err);
     }
 
+    // get params
+    const { storeId } = req.params;
+    const { callRequestId } = req.body;
+
+    const { waitingRoomId } = await waitingRoomModel.getWaitingRoomByStoreId(
+        storeId
+    );
+
+    // remove the call request from the queue
+    const membersAffected = await waitingRoomModel.removeCallRequestInQueue(
+        waitingRoomId,
+        callRequestId
+    );
+
+    if (!membersAffected) {
+        const err = new Error('Call request does not in queue.');
+        err.status = 409;
+        return next(err);
+    }
+
+    // process the call
     try {
-        const { storeId } = req.params;
-        const { callRequestId } = req.body;
-
-        const {
-            waitingRoomId,
-        } = await waitingRoomModel.getWaitingRoomByStoreId(storeId);
-
-        const membersAffected = await waitingRoomModel.removeCallRequestInQueue(
-            waitingRoomId,
-            callRequestId
-        );
-
-        if (!membersAffected) {
-            const err = new Error('Call request does not in queue.');
-            err.status = 409;
-            return next(err);
-        }
+        await callRequestModel.setState(callRequestId, PROCESSING_CALL);
 
         const { sessionId } = await videocallHelper.createSession();
 
@@ -167,6 +174,13 @@ const callClient = async (req, res, next) => {
         res.status(status);
         res.send({ status, data: call });
     } catch (err) {
+        await waitingRoomModel.pushCallRequestInQueue(
+            waitingRoomId,
+            callRequestId
+        );
+
+        await callRequestModel.setState(callRequestId, IN_QUEUE);
+
         err.status = 500;
         return next(err);
     }
