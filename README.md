@@ -77,7 +77,7 @@ public
 ###### Notes
 Returns in a header Authorization a valid JWT Token for 2hs.
 
-### `PATCH` - `/stores/:storeId/call-requests`
+### `PATCH` - `/stores/:storeId/call-requests/:callRequestId`
 Finish a call request. It has to have `CALLED` status.
 
 ###### Params
