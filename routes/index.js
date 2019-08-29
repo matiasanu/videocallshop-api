@@ -86,7 +86,7 @@ router.patch(
     callRequestMidd.callRequestExists,
     callRequestMidd.isCallRequestFromStore,
     authorizationMidd.checkAuthorization,
-    callRequestCtrl.updateCallRequest
+    callRequestCtrl.finishCallRequest
 );
 
 // waiting room

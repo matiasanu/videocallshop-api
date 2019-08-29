@@ -127,7 +127,7 @@ const cancelCallRequest = async (req, res, next) => {
     }
 };
 
-const updateCallRequest = async (req, res, next) => {
+const finishCallRequest = async (req, res, next) => {
     try {
         // authorization
         const hasAccess =
@@ -144,7 +144,7 @@ const updateCallRequest = async (req, res, next) => {
         // processes patch call request
         const { callRequestId } = req.params;
 
-        // checks if is not already cancelled
+        // checks if is called
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId
         );
@@ -204,5 +204,5 @@ module.exports = {
     createCallRequest,
     cancelCallRequest,
     getCallRequest,
-    updateCallRequest,
+    finishCallRequest,
 };
