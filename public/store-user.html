@@ -82,7 +82,7 @@
             const callRequestId = call.callRequestId;
             const callId = call.callId;
             // append element
-            $("#calls").append('<p id="' + callRequestId +'"><span class="data">' + 'callId: ' + callId + ' - ' + 'callRequestId: ' + callRequestId + '</span> <button class="cancelCallResquest">Cancel</button></p>');
+            $("#calls").append('<p id="' + callRequestId +'"><span class="data">' + 'callId: ' + callId + ' - ' + 'callRequestId: ' + callRequestId + '</span> <button class="cancelCallResquest">Cancel</button><button class="finishCallResquest">Finish</button></p>');
 
             // get request from memory
             var callRequest = callRequests[callRequestId];
@@ -116,6 +116,29 @@
             }).catch(res => {
                 if(res.responseJSON) {
                     alert("ERROR cancelling the call request: " + res.responseJSON.message);
+                } else {
+                    alert("ERROR occurred, check network tab console");
+                }
+
+            });
+        });
+
+        // Finish call request
+        $('body').on('click', '.finishCallResquest', ev => {
+            const callRequestId = ev.currentTarget.parentElement.id;
+            $.ajax({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
+                type: 'PATCH',
+                data: { status: "FINISHED" }
+
+            }).then(() => {
+                $("#fadeMessage").text("Call Request finished");
+                $("#fadeMessage").fadeOut(6000);
+                getCalls();
+
+            }).catch(res => {
+                if(res.responseJSON) {
+                    alert("ERROR finishing the call request: " + res.responseJSON.message);
                 } else {
                     alert("ERROR occurred, check network tab console");
                 }

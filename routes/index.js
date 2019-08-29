@@ -74,6 +74,21 @@ router.delete(
     callRequestCtrl.cancelCallRequest
 );
 
+router.patch(
+    '/stores/:storeId/call-requests/:callRequestId',
+    [
+        check('storeId').isInt(),
+        check('callRequestId').isInt(),
+        check('status').matches('FINISHED'),
+    ],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    callRequestCtrl.finishCallRequest
+);
+
 // waiting room
 router.get(
     '/stores/:storeId/waiting-room',
