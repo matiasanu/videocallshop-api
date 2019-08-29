@@ -77,6 +77,21 @@ public
 ###### Notes
 Returns in a header Authorization a valid JWT Token for 2hs.
 
+### `PATCH` - `/stores/:storeId/call-requests`
+Finish a call request. It has to have `CALLED` status.
+
+###### Params
+- status=FINISHED
+
+###### Auth
+storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.thisCallRequest);
+
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 401 - Unauthorized.
+- 400 - Bad Request.
+- 200 - OK.
+
 ### `GET` - `/stores/:storeId/call-requests/:callRequestId`
 Get a particular call request.
 
