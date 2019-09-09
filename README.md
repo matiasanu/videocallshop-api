@@ -163,9 +163,6 @@ Get the shipping options.
 ### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
 Get the purchase orders of a call request.
 
-###### Auth
-storeUser.thisStore
-
 ### `DELETE` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
 Delete a purchase orders of a call request.
 
