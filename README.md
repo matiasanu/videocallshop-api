@@ -157,6 +157,9 @@ storeUser.thisStore || callRequestToken.thisCallRequest;
 ### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
 Get the purchase orders of a call request.
 
+###### Auth
+storeUser.thisStore
+
 ### `POST` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders`
 Attach a purchase order in a call request.
 
