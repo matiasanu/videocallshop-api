@@ -161,7 +161,7 @@ Get the purchase orders of a call request.
 storeUser.thisStore
 
 ### `DELETE` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
-Delete the purchase orders of a call request.
+Delete a purchase orders of a call request.
 
 ###### Auth
 storeUser.thisStore
