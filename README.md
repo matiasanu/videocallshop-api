@@ -25,9 +25,13 @@ public
 ### `POST` - `/authentication/store`
 Authenticate a store user.
 
-###### Params
- - email
- - password
+###### Body example (`Content-Type: application/json`)
+```
+{
+    "email": "maurocg89@gmail.com",
+    "password": "sonserios10"
+}
+ ```
 
 ###### Auth
 public
@@ -60,10 +64,14 @@ public
 ### `POST` - `/stores/:storeId/call-requests`
 Create a call request. It will automatically be added to the queue.
 
-###### Params
-- email
-- lastName
-- name
+###### Body example (`Content-Type: application/json`)
+```
+{
+    "email": "pacoamoroso@gmail.com",
+    "name": "Paco",
+    "lastName": "Amoroso"
+}
+```
 
 ###### Auth
 public
@@ -80,8 +88,12 @@ Returns in a header Authorization a valid JWT Token for 2hs.
 ### `PATCH` - `/stores/:storeId/call-requests/:callRequestId`
 Finish a call request. It has to have `CALLED` status.
 
-###### Params
-- status=FINISHED
+###### Body example (`Content-Type: application/json`)
+```
+{
+    "status": "FINISHED"
+}
+```
 
 ###### Auth
 storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.thisCallRequest);
@@ -144,8 +156,12 @@ Pass storeId query param.
 ### `POST` - `/stores/:storeId/calls`
 Call a call request.
 
-### Params
-- callRequestId
+###### Body example (`Content-Type: application/json`)
+```
+{
+    "callRequestId": 4
+}
+```
 
 ###### Auth
 storeUser.thisStore
