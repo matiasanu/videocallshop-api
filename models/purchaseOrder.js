@@ -13,6 +13,19 @@ const getPurchaseOrder = async purchaseOrderId => {
     }
 };
 
+const deletePurchaseOrder = async purchaseOrderId => {
+    try {
+        const result = await pool.query(
+            `DELETE FROM purchase_orders po WHERE po.purchase_order_id='${purchaseOrderId}';`
+        );
+
+        return true;
+    } catch (err) {
+        console.log('ERROR query deletePurchaseOrder');
+        throw new Error(err.message);
+    }
+};
+
 const getPurchaseOrdersByCallRequestId = async callRequestId => {
     try {
         const result = await pool.query(
@@ -101,6 +114,7 @@ const addItems = async (purchaseOrderId, items) => {
 
 module.exports = {
     getPurchaseOrder,
+    deletePurchaseOrder,
     addItems,
     createPurchaseOrder,
     getPurchaseOrderItems,

@@ -17,6 +17,7 @@ const authorizationMidd = require('../middlewares/authorization');
 const storeMidd = require('../middlewares/store');
 const callRequestMidd = require('../middlewares/callRequest');
 const callMidd = require('../middlewares/call');
+const purchaseOrderMidd = require('../middlewares/purchaseOrder');
 
 // hello
 router.get('/', ({ res }) => res.send('videocallshop-api available'));
@@ -141,6 +142,23 @@ router.get(
     callRequestMidd.isCallRequestFromStore,
     authorizationMidd.checkAuthorization,
     purchaseOrderCtrl.getPurchaseOrders
+);
+
+router.delete(
+    '/stores/:storeId/call-requests/:callRequestId/purchase-orders/:purchaseOrderId',
+    [
+        check('storeId').isInt(),
+        check('callRequestId').isInt(),
+        check('purchaseOrderId').isInt(),
+    ],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    purchaseOrderMidd.purchaseOrderExists,
+    purchaseOrderMidd.isPurchaseOrderFromCallRequest,
+    authorizationMidd.checkAuthorization,
+    purchaseOrderCtrl.deletePurchaseOrder
 );
 
 router.post(
