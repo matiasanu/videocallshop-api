@@ -105,7 +105,7 @@ const callClient = async (req, res, next) => {
             throw new Error('Unauthorized.');
         }
     } catch (err) {
-        let myErr = new Error('Unauthorized');
+        let myErr = new Error('Unauthorized.');
         myErr.status = 401;
         return next(myErr);
     }

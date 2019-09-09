@@ -1,7 +1,3 @@
-const jwt = require('jsonwebtoken');
-
-const authenticationCtrl = require('../controllers/authentication');
-
 const waitingRoomModel = require('../models/waitingRoom');
 
 const getWaitingRoom = async (req, res, next) => {

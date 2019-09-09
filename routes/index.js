@@ -9,6 +9,7 @@ const storeCtrl = require('../controllers/store');
 const waitingRoomCtrl = require('../controllers/waitingRoom');
 const callCtrl = require('../controllers/call');
 const callRequestCtrl = require('../controllers/callRequest');
+const purchaseOrderCtrl = require('../controllers/purchaseOrder');
 
 // middlewares
 const paramsValidatorMidd = require('../middlewares/paramsValidator');
@@ -128,6 +129,39 @@ router.get(
     callMidd.isCallFromStore,
     authorizationMidd.checkAuthorization,
     callCtrl.getCall
+);
+
+// purchase orders
+router.post(
+    '/stores/:storeId/call-requests/:callRequestId/purchase-orders',
+    [
+        check('shippingOptionId').isInt(),
+        check('shippingPrice')
+            .optional()
+            .isDecimal(),
+        check('paymentOptionId').isInt(),
+        check('province')
+            .optional()
+            .isAscii(),
+        check('city')
+            .optional()
+            .isAscii(),
+        check('address')
+            .optional()
+            .isAscii(),
+        check('items.*.productName').isAscii(),
+        check('items.*.productDescription')
+            .optional()
+            .isAscii(),
+        check('items.*.unitPrice').isDecimal(),
+        check('items.*.quantity').isDecimal(),
+    ],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    purchaseOrderCtrl.createPurchaseOrder
 );
 
 module.exports = router;

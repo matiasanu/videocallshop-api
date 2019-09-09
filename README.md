@@ -202,3 +202,40 @@ storeUser.thisStore || callRequestToken.thisCallRequest;
 - 400 - Bad Request.
 - 401 - Unauthorized.
 - 200 - OK.
+
+### `POST` - `/stores/:storeId/calls`
+Attach a purchase order in a call request.
+
+###### Body example (`Content-Type: application/json`)
+```
+{
+    "shippingOptionId": 1,
+    "shippingPrice": 208.5,
+    "paymentOptionId": 1,
+    "province": "Santa Fe",
+    "city": "Rosario",
+    "address": "Zeballos 291 piso 6",
+    "items": [
+        {
+            "productName": "Tela negra",
+            "productDescription": "Retazo de tela negra",
+            "unitPrice": 291.2,
+            "quantity": 10.5
+        },
+        {
+            "productName": "Cinta metrica",
+            "unitPrice": 230,
+            "quantity": 12.5
+        }
+    ]
+}
+```
+
+###### Auth
+storeUser.thisStore
+
+###### Status codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
