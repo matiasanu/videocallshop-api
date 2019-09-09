@@ -10,6 +10,8 @@ const waitingRoomCtrl = require('../controllers/waitingRoom');
 const callCtrl = require('../controllers/call');
 const callRequestCtrl = require('../controllers/callRequest');
 const purchaseOrderCtrl = require('../controllers/purchaseOrder');
+const paymentOptionCtrl = require('../controllers/paymentOption');
+const shippingOptionCtrl = require('../controllers/shippingOption');
 
 // middlewares
 const paramsValidatorMidd = require('../middlewares/paramsValidator');
@@ -131,6 +133,12 @@ router.get(
     authorizationMidd.checkAuthorization,
     callCtrl.getCall
 );
+
+// shipping options
+router.get('/shipping-options', shippingOptionCtrl.getShippingOptions);
+
+//payment options
+router.get('/payment-options', paymentOptionCtrl.getPaymentOptions);
 
 // purchase orders
 router.get(

@@ -154,6 +154,12 @@ Get the calls from the store.
 ###### Auth
 storeUser.thisStore || callRequestToken.thisCallRequest;
 
+### `GET` - `/payment-options`
+Get the payment options.
+
+### `GET` - `/shipping-options`
+Get the shipping options.
+
 ### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
 Get the purchase orders of a call request.
 
