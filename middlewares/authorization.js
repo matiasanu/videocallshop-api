@@ -104,7 +104,7 @@ const checkAuthorization = async (req, res, next) => {
         }
     }
 
-    console.log(authorization);
+    //console.log(authorization);
 
     req.authorization = authorization;
     next();

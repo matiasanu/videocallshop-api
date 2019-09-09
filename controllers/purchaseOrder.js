@@ -62,6 +62,7 @@ const createPurchaseOrder = async (req, res, next) => {
         const purchaseOrder = await purchaseOrderModel.getPurchaseOrder(
             purchaseOrderId
         );
+
         purchaseOrder.items = await purchaseOrderModel.getPurchaseOrderItems(
             purchaseOrderId
         );
@@ -73,6 +74,40 @@ const createPurchaseOrder = async (req, res, next) => {
     }
 };
 
+const getPurchaseOrders = async (req, res, next) => {
+    // authorization
+    try {
+        const hasAccess = req.authorization.storeUser.thisStore;
+
+        if (!hasAccess) {
+            throw new Error('Unauthorized.');
+        }
+    } catch (err) {
+        let myErr = new Error('Unauthorized.');
+        myErr.status = 401;
+        return next(myErr);
+    }
+
+    // retrieve data
+    const { callRequestId } = req.params;
+    const purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
+        callRequestId
+    );
+
+    await Promise.all(
+        purchaseOrders.map(async purchaseOrder => {
+            purchaseOrder.items = await purchaseOrderModel.getPurchaseOrderItems(
+                purchaseOrder.purchaseOrderId
+            );
+
+            return purchaseOrder;
+        })
+    );
+
+    res.send(purchaseOrders);
+};
+
 module.exports = {
     createPurchaseOrder,
+    getPurchaseOrders,
 };

@@ -13,6 +13,19 @@ const getPurchaseOrder = async purchaseOrderId => {
     }
 };
 
+const getPurchaseOrdersByCallRequestId = async callRequestId => {
+    try {
+        const result = await pool.query(
+            `SELECT * FROM purchase_orders po WHERE po.call_request_id='${callRequestId}';`
+        );
+
+        return result.rows;
+    } catch (err) {
+        console.log('ERROR query getPurchaseOrdersByCallRequestId');
+        throw new Error(err.message);
+    }
+};
+
 const getPurchaseOrderItems = async purchaseOrderId => {
     try {
         const result = await pool.query(
@@ -91,4 +104,5 @@ module.exports = {
     addItems,
     createPurchaseOrder,
     getPurchaseOrderItems,
+    getPurchaseOrdersByCallRequestId,
 };

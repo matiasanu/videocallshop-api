@@ -132,9 +132,22 @@ router.get(
 );
 
 // purchase orders
+router.get(
+    '/stores/:storeId/call-requests/:callRequestId/purchase-orders',
+    [check('storeId').isInt(), check('callRequestId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    callRequestMidd.callRequestExists,
+    callRequestMidd.isCallRequestFromStore,
+    authorizationMidd.checkAuthorization,
+    purchaseOrderCtrl.getPurchaseOrders
+);
+
 router.post(
     '/stores/:storeId/call-requests/:callRequestId/purchase-orders',
     [
+        check('storeId').isInt(),
+        check('callRequestId').isInt(),
         check('shippingOptionId').isInt(),
         check('shippingPrice')
             .optional()

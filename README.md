@@ -15,6 +15,13 @@ Client to loggin as a store user, watch the queue and performs store user action
 https://videocallshop-api-dev.herokuapp.com/
 
 ## API methods
+
+###### Common Status Codes
+- 422 - Unprocessable Entity: Bad params.
+- 400 - Bad Request.
+- 401 - Unauthorized.
+- 200 - OK.
+
 ### `GET` - `/`
 
 Ping.
@@ -36,30 +43,17 @@ Authenticate a store user.
 ###### Auth
 public
 
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 401 - Unauthorized.
-- 200 - OK.
-
 ### `GET` - `/stores`
 Get all the stores.
 
 ###### Auth
 public
 
-###### Status codes
-- 200 - OK
-
 ### `GET` - `/stores/:storeId`
 Get info of a particular store.
 
 ###### Auth
 public
-
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 200 - OK.
 
 ### `POST` - `/stores/:storeId/call-requests`
 Create a call request. It will automatically be added to the queue.
@@ -77,10 +71,7 @@ Create a call request. It will automatically be added to the queue.
 public
 
 ###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
 - 409 - Conflict. message: 'Email already in use.'
-- 200 - OK.
 
 ###### Notes
 Returns in a header Authorization a valid JWT Token for 2hs.
@@ -98,23 +89,11 @@ Finish a call request. It has to have `CALLED` status.
 ###### Auth
 storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.thisCallRequest);
 
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 401 - Unauthorized.
-- 400 - Bad Request.
-- 200 - OK.
-
 ### `GET` - `/stores/:storeId/call-requests/:callRequestId`
 Get a particular call request.
 
 ###### Auth
 storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.inQueue)
-
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 401 - Unauthorized.
-- 200 - OK.
 
 ### `DELETE` - `/stores/:storeId/call-requests/:callRequestId`
 Cancel a particular call request.
@@ -122,23 +101,11 @@ Cancel a particular call request.
 ###### Auth
 storeUser.thisStore || callRequestToken.thisStore && callRequestToken.thisCallRequest
 
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 401 - Unauthorized.
-- 200 - OK.
-
 ### `GET` - `/stores/:storeId/waiting-room`
 Get a waiting room.
 
 ###### Auth
 storeUser.thisStore || callRequestToken.thisStore && callRequestToken.inQueue
-
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 401 - Unauthorized.
-- 200 - OK.
 
 ### `WebSocket` - `/waiting-room-socket`
 Connect with waiting room.
@@ -167,24 +134,14 @@ Call a call request.
 storeUser.thisStore
 
 ###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 401 - Unauthorized.
 - 409 - Conflict. message: "You are already in call."
 - 409 - Conflict. message: "Call request does not in queue."
-- 200 - OK.
 
 ### `GET` - `/stores/:storeId/calls/:callId`
 Get a particular call.
 
 ###### Auth
 storeUser.thisStore || (callRequestToken.thisStore && callRequestToken.thisCall)
-
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 401 - Unauthorized.
-- 200 - OK.
 
 ### `GET` - `/stores/:storeId/calls`
 Get the calls from the store.
@@ -197,13 +154,10 @@ Get the calls from the store.
 ###### Auth
 storeUser.thisStore || callRequestToken.thisCallRequest;
 
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 401 - Unauthorized.
-- 200 - OK.
+### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
+Get the purchase orders of a call request.
 
-### `POST` - `/stores/:storeId/calls`
+### `POST` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders`
 Attach a purchase order in a call request.
 
 ###### Body example (`Content-Type: application/json`)
@@ -233,9 +187,3 @@ Attach a purchase order in a call request.
 
 ###### Auth
 storeUser.thisStore
-
-###### Status codes
-- 422 - Unprocessable Entity: Bad params.
-- 400 - Bad Request.
-- 401 - Unauthorized.
-- 200 - OK.
