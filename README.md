@@ -160,7 +160,7 @@ Get the payment options.
 ### `GET` - `/shipping-options`
 Get the shipping options.
 
-### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
+### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders`
 Get the purchase orders of a call request.
 
 ### `DELETE` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
