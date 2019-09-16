@@ -1,5 +1,6 @@
 //helpers
 const jwtHelper = require('../helpers/jwt');
+const emailHelper = require('../helpers/email');
 
 // models
 const waitingRoomModel = require('../models/waitingRoom');
@@ -160,6 +161,8 @@ const finishCallRequest = async (req, res, next) => {
         }
 
         await callRequestModel.setState(callRequestId, FINISHED);
+
+        emailHelper.sendFinishedCallRequest();
 
         const status = 200;
         res.send({ status });
