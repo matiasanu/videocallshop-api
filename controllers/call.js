@@ -178,7 +178,9 @@ const callClient = async (req, res, next) => {
         delete call.tokboxTokenCallRequest;
 
         // send push notification
-        const callRequest = await callRequest.getCallRequest(callRequestId);
+        const callRequest = await callRequestModel.getCallRequest(
+            callRequestId
+        );
         if (callRequest.onesignalPlayerId) {
             pushNotificationHelper.sendPushNotification(
                 'Has sido llamado por la tienda',
