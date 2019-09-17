@@ -1,8 +1,13 @@
+// models
 const videocallHelper = require('../helpers/videocall');
 const callModel = require('../models/call');
 const callRequestModel = require('../models/callRequest');
 const waitingRoomModel = require('../models/waitingRoom');
 
+// helpers
+const pushNotificationHelper = require('../helpers/pushNotification');
+
+// consts
 const CALLED = 'CALLED';
 const PROCESSING_CALL = 'PROCESSING_CALL';
 const IN_QUEUE = 'IN_QUEUE';
@@ -146,6 +151,7 @@ const callClient = async (req, res, next) => {
     try {
         await callRequestModel.setState(callRequestId, PROCESSING_CALL);
 
+        // creates tokbox session
         const { sessionId } = await videocallHelper.createSession();
 
         const tokenStoreUser = videocallHelper.generateToken(sessionId, {
@@ -156,6 +162,7 @@ const callClient = async (req, res, next) => {
             role: 'publisher',
         });
 
+        // registers call
         const storeUserId = req.session.storeUser.storeUserId;
         const callId = await callModel.registerCall(
             callRequestId,
@@ -170,6 +177,17 @@ const callClient = async (req, res, next) => {
         const call = await callModel.getCall(callId);
         delete call.tokboxTokenCallRequest;
 
+        // send push notification
+        const callRequest = await callRequest.getCallRequest(callRequestId);
+        if (callRequest.onesignalPlayerId) {
+            pushNotificationHelper.sendPushNotification(
+                'Has sido llamado por la tienda',
+                [callRequest.onesignalPlayerId],
+                { type: CALLED, callRequest, call }
+            );
+        }
+
+        // send response
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
