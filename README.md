@@ -63,7 +63,8 @@ Create a call request. It will automatically be added to the queue.
 {
     "email": "pacoamoroso@gmail.com",
     "name": "Paco",
-    "lastName": "Amoroso"
+    "lastName": "Amoroso",
+    "onesignalPlayerId": "6392d91a-b206-4b7b-a620-cd68e32c3a76"
 }
 ```
 

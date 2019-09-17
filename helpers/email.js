@@ -1,14 +1,14 @@
 'use strict';
 const nodemailer = require('nodemailer');
 
-async function sendPurchaseInstructions(
+const sendPurchaseInstructions = async (
     callRequest,
     purchaseOrder,
     items,
     paymentOption,
     shippingOption,
     store
-) {
+) => {
     let transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
@@ -243,7 +243,7 @@ async function sendPurchaseInstructions(
     });
 
     console.log('Email sent: %s', info.messageId);
-}
+};
 
 module.exports = {
     sendPurchaseInstructions,

@@ -13,12 +13,21 @@ const getCallRequest = async callRequestId => {
     }
 };
 
-const createCallRequest = async (storeId, email, name, lastName, state) => {
+const createCallRequest = async (
+    storeId,
+    email,
+    name,
+    lastName,
+    onesignalPlayerId,
+    state
+) => {
     try {
         const now = new Date().toISOString();
+        onesignalPlayerId = onesignalPlayerId || null;
 
         const result = await pool.query(
-            `INSERT INTO call_requests(store_id, name, last_name, email, state, created_on) VALUES ('${storeId}', '${name}', '${lastName}', '${email}', '${state}', '${now}') RETURNING call_request_id;`
+            `INSERT INTO call_requests(store_id, name, last_name, email, state, onesignal_player_id, created_on) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING call_request_id;`,
+            [storeId, name, lastName, email, state, onesignalPlayerId, now]
         );
 
         return result.rows[0].callRequestId;

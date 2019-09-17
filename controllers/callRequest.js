@@ -18,7 +18,7 @@ const FINISHED = 'FINISHED';
 
 const createCallRequest = async (req, res, next) => {
     try {
-        const { email, name, lastName } = req.body;
+        const { email, name, lastName, onesignalPlayerId } = req.body;
         const storeId = parseInt(req.params.storeId);
 
         // checks if another email is not into a queue
@@ -51,6 +51,7 @@ const createCallRequest = async (req, res, next) => {
             email,
             name,
             lastName,
+            onesignalPlayerId,
             NEW
         );
 
