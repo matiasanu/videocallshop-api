@@ -16,7 +16,7 @@ async function sendPushNotification(message, players, data) {
 
     var data = {
         app_id: process.env.ONESIGNAL_APP_ID,
-        contents: { es: message },
+        contents: { en: message },
         data,
         include_player_ids: players,
     };
