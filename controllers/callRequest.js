@@ -21,7 +21,7 @@ const createCallRequest = async (req, res, next) => {
         const { email, name, lastName, onesignalPlayerId } = req.body;
         const storeId = parseInt(req.params.storeId);
 
-        // checks if another email is not into a queue
+        // check if another email is not into a queue
         const inQueue = await waitingRoomModel.findCallRequestInQueueByEmail(
             email
         );
@@ -32,9 +32,9 @@ const createCallRequest = async (req, res, next) => {
             return next(err);
         }
 
-        // processes call request
+        // process call request
 
-        // gets waiting room
+        // get waiting room
         const waitingRoom = await waitingRoomModel.getWaitingRoomByStoreId(
             storeId
         );
@@ -45,7 +45,7 @@ const createCallRequest = async (req, res, next) => {
 
         const { waitingRoomId } = waitingRoom;
 
-        // creates call request and push them in queue
+        // create call request and push them in queue
         const callRequestId = await callRequestModel.createCallRequest(
             storeId,
             email,
@@ -96,10 +96,10 @@ const cancelCallRequest = async (req, res, next) => {
             return next(err);
         }
 
-        // processes cancel call request
+        // process cancel call request
         const { storeId, callRequestId } = req.params;
 
-        // checks if is not already cancelled
+        // check if is not already cancelled
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId
         );
@@ -147,10 +147,10 @@ const finishCallRequest = async (req, res, next) => {
             return next(err);
         }
 
-        // processes patch call request
+        // process patch call request
         const { callRequestId } = req.params;
 
-        // checks if is called
+        // check if is called
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId
         );
@@ -229,7 +229,7 @@ const getCallRequest = async (req, res, next) => {
             return next(err);
         }
 
-        // returns call request
+        // return call request
         const { callRequestId } = req.params;
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId

@@ -20,7 +20,7 @@ const authenticateStoreUser = async (req, res, next) => {
         if (bcrypt.compareSync(password, user.password)) {
             delete user.password;
 
-            // creates session for the user
+            // create session for the user
             req.session.storeUser = user;
 
             await storeUserModel.updateLastLoginByEmail(email);

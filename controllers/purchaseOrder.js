@@ -17,7 +17,7 @@ const createPurchaseOrder = async (req, res, next) => {
         return next(myErr);
     }
 
-    // checks if call request is called
+    // check if call request is called
     const { callRequestId } = req.params;
     const callRequest = await callRequestModel.getCallRequest(callRequestId);
 
@@ -89,7 +89,7 @@ const deletePurchaseOrder = async (req, res, next) => {
         return next(myErr);
     }
 
-    // checks if call request is called
+    // check if call request is called
     const { callRequestId, purchaseOrderId } = req.params;
     const callRequest = await callRequestModel.getCallRequest(callRequestId);
 

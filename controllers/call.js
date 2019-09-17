@@ -151,7 +151,7 @@ const callClient = async (req, res, next) => {
     try {
         await callRequestModel.setState(callRequestId, PROCESSING_CALL);
 
-        // creates tokbox session
+        // create tokbox session
         const { sessionId } = await videocallHelper.createSession();
 
         const tokenStoreUser = videocallHelper.generateToken(sessionId, {
@@ -162,7 +162,7 @@ const callClient = async (req, res, next) => {
             role: 'publisher',
         });
 
-        // registers call
+        // register call
         const storeUserId = req.session.storeUser.storeUserId;
         const callId = await callModel.registerCall(
             callRequestId,
