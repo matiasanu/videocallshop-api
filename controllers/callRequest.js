@@ -45,7 +45,7 @@ const createCallRequest = async (req, res, next) => {
 
         const { waitingRoomId } = waitingRoom;
 
-        // create call request and push them in queue
+        // create call request and push it in queue
         const callRequestId = await callRequestModel.createCallRequest(
             storeId,
             email,
