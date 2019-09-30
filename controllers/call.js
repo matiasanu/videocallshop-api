@@ -6,6 +6,7 @@ const waitingRoomModel = require('../models/waitingRoom');
 
 // helpers
 const pushNotificationHelper = require('../helpers/pushNotification');
+const jwtHelper = require('../helpers/jwt');
 
 // consts
 const CALLED = 'CALLED';
@@ -181,11 +182,12 @@ const callClient = async (req, res, next) => {
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId
         );
+        const jwt = jwtHelper.generateJwt(callRequest);
         if (callRequest.onesignalPlayerId) {
             pushNotificationHelper.sendPushNotification(
                 'Has sido llamado por la tienda',
                 [callRequest.onesignalPlayerId],
-                { type: CALLED, callRequest, call }
+                { type: CALLED, callRequest, call, jwt }
             );
         }
 
