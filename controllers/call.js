@@ -175,7 +175,7 @@ const callClient = async (req, res, next) => {
         await callRequestModel.setState(callRequestId, CALLED);
 
         const call = await callModel.getCall(callId);
-        delete call.tokboxTokenStoreUser;
+        delete call.tokboxTokenCallRequest;
 
         // send push notification
         const callRequest = await callRequestModel.getCallRequest(
