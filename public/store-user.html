@@ -1,0 +1,255 @@
+<script src="js/socket.io.dev.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+
+<script>
+    var callRequests = [];
+    var storeId = null;
+    var storeUserId = null;
+
+    const getJsonFromUrl = url => {
+        if(!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(part => {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    const updateCallRequestLabel = (callResquest) => {
+        const label = callResquest.callRequestId + ' - ' + callResquest.name + ' ' + callResquest.lastName + ' - ' + callResquest.email;
+        $("#" + callResquest.callRequestId).find('.data').html(label);
+    };
+
+    const getCallRequestDataFromApi = (callRequestId, callback) => {
+        return $.get({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId,
+            }
+        );
+    };
+
+    const getCalls = () => {
+        $.get(
+            '/stores/' + storeId + '/calls?storeUserId' + storeUserId + '&state=CALLED', // url
+            {  } //params
+        ).then(response => {
+            $("#fadeMessage").text("Watch console");
+            $("#fadeMessage").fadeOut(6000);
+            console.log(response.data);
+            renderCalls(response.data);
+        }).catch(res => {
+            if(res.responseJSON) {
+                alert("ERROR calling the call request: " + res.responseJSON.message);
+            } else {
+                alert("ERROR occurred, check network tab console");
+            }
+        });
+    }
+
+    const renderQueue = queue => {
+        // restart the waiting room queue
+        $("#queue").html("");
+
+        // iterate each call request
+        $.each(queue, (index, callRequestId) => {
+            // append element with "loading..." state
+            $("#queue").append('<p id="' + callRequestId +'"><span class="data">' + callRequestId + ' - ' + 'loading...' + '</span> <button class="cancelCallResquest">Cancel</button><button class="callCallResquest">Call</button</p>');
+
+            // get request from memory
+            var callRequest = callRequests[callRequestId];
+            if(!callRequest) {
+                // request from memory not found, get from api
+                getCallRequestDataFromApi(callRequestId)
+                    .then(response => {
+                        const callRequestData = response.data;
+                        // store call request fetched on memory
+                        callRequests[callRequestData.callRequestId] = callRequestData;
+                        updateCallRequestLabel(callRequestData);
+                    });
+            } else {
+                updateCallRequestLabel(callRequest);
+            }
+        });
+    };
+
+    const renderCalls = calls => {
+        // restart calls
+        $("#calls").html("");
+
+        // iterate each call request
+        $.each(calls, (index, call) => {
+            const callRequestId = call.callRequestId;
+            const callId = call.callId;
+            // append element
+            $("#calls").append('<p id="' + callRequestId +'"><span class="data">' + 'callId: ' + callId + ' - ' + 'callRequestId: ' + callRequestId + '</span> <button class="cancelCallResquest">Cancel</button><button class="finishCallResquest">Finish</button></p>');
+
+            // get request from memory
+            var callRequest = callRequests[callRequestId];
+            if(!callRequest) {
+                // request from memory not found, get from api
+                getCallRequestDataFromApi(callRequestId)
+                    .then(response => {
+                        const callRequestData = response.data;
+                        // store call request fetched on memory
+                        callRequests[callRequestData.callRequestId] = callRequestData;
+                        updateCallRequestLabel(callRequestData);
+                    });
+            } else {
+                updateCallRequestLabel(callRequest);
+            }
+        });
+    };
+
+    $( document ).ready(() => {
+        // Cancel call request
+        $('body').on('click', '.cancelCallResquest', ev => {
+            const callRequestId = ev.currentTarget.parentElement.id;
+            $.ajax({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
+                type: 'DELETE'
+            }).then(() => {
+                $("#fadeMessage").text("Call Request cancelled");
+                $("#fadeMessage").fadeOut(6000);
+                getCalls();
+
+            }).catch(res => {
+                if(res.responseJSON) {
+                    alert("ERROR cancelling the call request: " + res.responseJSON.message);
+                } else {
+                    alert("ERROR occurred, check network tab console");
+                }
+
+            });
+        });
+
+        // Finish call request
+        $('body').on('click', '.finishCallResquest', ev => {
+            const callRequestId = ev.currentTarget.parentElement.id;
+            $.ajax({
+                url: '/stores/' + storeId + '/call-requests/' + callRequestId, // url
+                type: 'PATCH',
+                data: { status: "FINISHED" }
+
+            }).then(() => {
+                $("#fadeMessage").text("Call Request finished");
+                $("#fadeMessage").fadeOut(6000);
+                getCalls();
+
+            }).catch(res => {
+                if(res.responseJSON) {
+                    alert("ERROR finishing the call request: " + res.responseJSON.message);
+                } else {
+                    alert("ERROR occurred, check network tab console");
+                }
+
+            });
+        });
+
+        // Call call request
+        $('#queue').on('click', '.callCallResquest', ev => {
+            const callRequestId = ev.currentTarget.parentElement.id;
+            $.post(
+                '/stores/' + storeId + '/calls', // url
+                { callRequestId } //params
+            ).then(response => {
+                $("#fadeMessage").text("Call Request called");
+                $("#fadeMessage").fadeOut(6000);
+                alert(JSON.stringify(response.data));
+                getCalls();
+                console.log(response.data);
+            }).catch(res => {
+                if(res.responseJSON) {
+                    alert("ERROR calling the call request: " + res.responseJSON.message);
+                } else {
+                    alert("ERROR occurred, check network tab console");
+                }
+            });
+        });
+
+        // Get calls
+        $('#getCalls').on('click', ev => {
+            if(!storeUserId) {
+                alert("Not logged in");
+                return ;
+            }
+            getCalls();
+        });
+
+        var params = getJsonFromUrl();
+        var email = params.email;
+        var password = params.password;
+
+        if(!email || !password) {
+            $('#invalidParams').show();
+            return ;
+        }
+
+        $("#email").html(email);
+        $.post(
+            '/authentication/store', // url
+            { email, password }, // params
+            (response, textStatus, request) => { // callback
+                storeId = response.data.storeId;
+                storeUserId = response.data.storeUserId;
+
+                $("#storeId").html(storeId);
+                $("#removeAllBtn").show();
+
+                getCalls();
+
+                var socket = io(
+                    '?storeId='+ storeId,
+                    {
+                        path: '/waiting-room-socket'
+                    }
+                );
+
+                socket.on('disconnect', () => {
+                    $("#socketStatus").html("<span style='color: darkred'>SOCKET DISCONNECTED</span>")
+                });
+
+                socket.on('connect', () => {
+                    $("#socketStatus").html("<span style='color: green'>SOCKET CONNECTED</span>")
+                });
+
+                socket.on('WAITING_ROOM_SENDED', waitingRoom => {
+                    console.log('WAITING_ROOM_SENDED',  waitingRoom.queue);
+                    renderQueue(waitingRoom.queue);
+                });
+
+                socket.on('QUEUE_CHANGED', queue => {
+                    console.log('QUEUE_CHANGED', queue);
+                    renderQueue(queue);
+                });
+            }
+        ).fail(response => {
+            console.log(response.data);
+            alert( response.responseJSON.message );
+        });
+
+    });
+</script>
+<html>
+    <body>
+        <div style="display: none;" id="invalidParams">
+            <h1 style="color: darkred">Error - Required uri: ?email=alemmartin@gmail.com&password=sonserios10</h1>
+        </div>
+
+        <div style="text-align: center">
+            <h1 style="text-align: center">TIENDA ID: <span id="storeId"></span></h1>
+            <h3><span id="socketStatus"></span></h3>
+            <h2 id="fadeMessage" style="color: orangered"></h2>
+        </div>
+        <hr/>
+
+        <h3>STORE USER</h3>
+        <p id="email"></p>
+
+        <h3>QUEUE</h3>
+        <p><span id="queue"></span></p>
+
+        <h3>CALLS <button id="getCalls">Get current calls</button></h3>
+        <p><span id="calls"></span></p>
+    </body>
+</html>
