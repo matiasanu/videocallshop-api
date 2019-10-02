@@ -1,7 +1,3 @@
-const jwt = require('jsonwebtoken');
-
-const authenticationCtrl = require('../controllers/authentication');
-
 const waitingRoomModel = require('../models/waitingRoom');
 
 const getWaitingRoom = async (req, res, next) => {
@@ -43,7 +39,6 @@ const getWaitingRoom = async (req, res, next) => {
 
 const getWaitingRoomBySocket = async socket => {
     try {
-        console.log('Socket authorization', socket.handshake.authorization);
         // authorization
         const hasAccess =
             socket.handshake.authorization.storeUser.thisStore ||

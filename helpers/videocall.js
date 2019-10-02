@@ -20,6 +20,11 @@ const createSession = () => {
     });
 };
 
+const generateToken = sessionId => {
+    return opentok.generateToken(sessionId);
+};
+
 module.exports = {
     createSession,
+    generateToken,
 };

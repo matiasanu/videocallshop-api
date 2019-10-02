@@ -1,20 +1,27 @@
 //helpers
 const jwtHelper = require('../helpers/jwt');
+const emailHelper = require('../helpers/email');
 
 // models
 const waitingRoomModel = require('../models/waitingRoom');
 const callRequestModel = require('../models/callRequest');
+const purchaseOrderModel = require('../models/purchaseOrder');
+const storeModel = require('../models/store');
+const paymentOptionModel = require('../models/paymentOption');
+const shippingOptionModel = require('../models/shippingOption');
 
 const NEW = 'NEW';
 const IN_QUEUE = 'IN_QUEUE';
+const CALLED = 'CALLED';
 const CANCELLED = 'CANCELLED';
+const FINISHED = 'FINISHED';
 
 const createCallRequest = async (req, res, next) => {
     try {
-        const { email, name, lastName } = req.body;
+        const { email, name, lastName, onesignalPlayerId } = req.body;
         const storeId = parseInt(req.params.storeId);
 
-        // checks if another email is not into a queue
+        // check if another email is not into a queue
         const inQueue = await waitingRoomModel.findCallRequestInQueueByEmail(
             email
         );
@@ -25,9 +32,9 @@ const createCallRequest = async (req, res, next) => {
             return next(err);
         }
 
-        // processes call request
+        // process call request
 
-        // gets waiting room
+        // get waiting room
         const waitingRoom = await waitingRoomModel.getWaitingRoomByStoreId(
             storeId
         );
@@ -38,12 +45,13 @@ const createCallRequest = async (req, res, next) => {
 
         const { waitingRoomId } = waitingRoom;
 
-        // creates call request and push them in queue
+        // create call request and push it in queue
         const callRequestId = await callRequestModel.createCallRequest(
             storeId,
             email,
             name,
             lastName,
+            onesignalPlayerId,
             NEW
         );
 
@@ -88,10 +96,10 @@ const cancelCallRequest = async (req, res, next) => {
             return next(err);
         }
 
-        // processes cancel call request
+        // process cancel call request
         const { storeId, callRequestId } = req.params;
 
-        // checks if is not already cancelled
+        // check if is not already cancelled
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId
         );
@@ -125,13 +133,13 @@ const cancelCallRequest = async (req, res, next) => {
     }
 };
 
-const getCallRequest = async (req, res, next) => {
+const finishCallRequest = async (req, res, next) => {
     try {
         // authorization
         const hasAccess =
             req.authorization.storeUser.thisStore ||
             (req.authorization.callRequestToken.thisStore &&
-                req.authorization.callRequestToken.inQueue);
+                req.authorization.callRequestToken.thisCallRequest);
 
         if (!hasAccess) {
             const err = new Error('Unauthorized.');
@@ -139,7 +147,89 @@ const getCallRequest = async (req, res, next) => {
             return next(err);
         }
 
-        // returns call request
+        // process patch call request
+        const { callRequestId } = req.params;
+
+        // check if is called
+        const callRequest = await callRequestModel.getCallRequest(
+            callRequestId
+        );
+
+        if (!callRequest) {
+            throw new Error('Call request not found.');
+        }
+
+        if (callRequest.state !== CALLED) {
+            const err = new Error('The call request is not in CALLED state.');
+            err.status = 400;
+            return next(err);
+        }
+
+        // set finished state
+        await callRequestModel.setState(callRequestId, FINISHED);
+
+        // send email with instructions if have purchase orders
+        const purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
+            callRequest.callRequestId
+        );
+
+        if (purchaseOrders.length > 0) {
+            const store = await storeModel.getStore(callRequest.storeId);
+
+            let purchaseOrder;
+            for (purchaseOrder of purchaseOrders) {
+                const {
+                    paymentOptionId,
+                    shippingOptionId,
+                    purchaseOrderId,
+                } = purchaseOrder;
+
+                const paymentOption = await paymentOptionModel.getPaymentOption(
+                    paymentOptionId
+                );
+
+                const shippingOption = await shippingOptionModel.getShippingOption(
+                    shippingOptionId
+                );
+
+                const items = await purchaseOrderModel.getPurchaseOrderItems(
+                    purchaseOrderId
+                );
+
+                emailHelper.sendPurchaseInstructions(
+                    callRequest,
+                    purchaseOrder,
+                    items,
+                    paymentOption,
+                    shippingOption,
+                    store
+                );
+            }
+        }
+
+        // send response
+        const status = 200;
+        res.send({ status });
+    } catch (err) {
+        err.status = 500;
+        return next(err);
+    }
+};
+
+const getCallRequest = async (req, res, next) => {
+    try {
+        // authorization
+        const hasAccess =
+            req.authorization.storeUser.thisStore ||
+            req.authorization.callRequestToken.thisStore;
+
+        if (!hasAccess) {
+            const err = new Error('Unauthorized.');
+            err.status = 401;
+            return next(err);
+        }
+
+        // return call request
         const { callRequestId } = req.params;
         const callRequest = await callRequestModel.getCallRequest(
             callRequestId
@@ -161,4 +251,5 @@ module.exports = {
     createCallRequest,
     cancelCallRequest,
     getCallRequest,
+    finishCallRequest,
 };

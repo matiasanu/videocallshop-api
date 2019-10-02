@@ -1,9 +1,17 @@
+// models
 const videocallHelper = require('../helpers/videocall');
 const callModel = require('../models/call');
 const callRequestModel = require('../models/callRequest');
 const waitingRoomModel = require('../models/waitingRoom');
 
+// helpers
+const pushNotificationHelper = require('../helpers/pushNotification');
+const jwtHelper = require('../helpers/jwt');
+
+// consts
 const CALLED = 'CALLED';
+const PROCESSING_CALL = 'PROCESSING_CALL';
+const IN_QUEUE = 'IN_QUEUE';
 
 const getCall = async (req, res, next) => {
     // authorization
@@ -25,6 +33,14 @@ const getCall = async (req, res, next) => {
     try {
         const { callId } = req.params;
         const call = await callModel.getCall(callId);
+
+        if (!req.authorization.storeUser.thisStore) {
+            delete call.tokboxTokenStoreUser;
+        }
+
+        if (!req.authorization.callRequestToken.thisCall) {
+            delete call.tokboxTokenCallRequest;
+        }
 
         const status = 200;
         res.status(status);
@@ -67,6 +83,15 @@ const getCalls = async (req, res, next) => {
         }
 
         const calls = await callModel.findCallsByStoreId(storeId, filters);
+        calls.forEach(call => {
+            if (!req.authorization.storeUser.thisStore) {
+                delete call.tokboxTokenStoreUser;
+            }
+
+            if (!req.authorization.callRequestToken.thisCallRequest) {
+                delete call.tokboxTokenCallRequest;
+            }
+        });
 
         const status = 200;
         res.status(status);
@@ -86,7 +111,7 @@ const callClient = async (req, res, next) => {
             throw new Error('Unauthorized.');
         }
     } catch (err) {
-        let myErr = new Error('Unauthorized');
+        let myErr = new Error('Unauthorized.');
         myErr.status = 401;
         return next(myErr);
     }
@@ -103,46 +128,81 @@ const callClient = async (req, res, next) => {
         return next(err);
     }
 
+    // get params
+    const { storeId } = req.params;
+    const { callRequestId } = req.body;
+
+    const { waitingRoomId } = await waitingRoomModel.getWaitingRoomByStoreId(
+        storeId
+    );
+
+    // remove the call request from the queue
+    const membersAffected = await waitingRoomModel.removeCallRequestInQueue(
+        waitingRoomId,
+        callRequestId
+    );
+
+    if (!membersAffected) {
+        const err = new Error('Call request does not in queue.');
+        err.status = 409;
+        return next(err);
+    }
+
+    // process the call
     try {
-        const { storeId } = req.params;
-        const { callRequestId } = req.body;
+        await callRequestModel.setState(callRequestId, PROCESSING_CALL);
 
-        const inQueue = await waitingRoomModel.findCallRequestInQueue(
-            callRequestId
-        );
-
-        if (!inQueue) {
-            const err = new Error('Call request does not in queue.');
-            err.status = 409;
-            return next(err);
-        }
-
+        // create tokbox session
         const { sessionId } = await videocallHelper.createSession();
 
+        const tokenStoreUser = videocallHelper.generateToken(sessionId, {
+            role: 'moderator',
+        });
+
+        const tokenCallRequest = videocallHelper.generateToken(sessionId, {
+            role: 'publisher',
+        });
+
+        // register call
         const storeUserId = req.session.storeUser.storeUserId;
         const callId = await callModel.registerCall(
             callRequestId,
+            storeUserId,
             sessionId,
-            storeUserId
-        );
-
-        const {
-            waitingRoomId,
-        } = await waitingRoomModel.getWaitingRoomByStoreId(storeId);
-
-        await waitingRoomModel.removeCallRequestInQueue(
-            waitingRoomId,
-            callRequestId
+            tokenStoreUser,
+            tokenCallRequest
         );
 
         await callRequestModel.setState(callRequestId, CALLED);
 
         const call = await callModel.getCall(callId);
+        delete call.tokboxTokenCallRequest;
 
+        // send push notification
+        const callRequest = await callRequestModel.getCallRequest(
+            callRequestId
+        );
+        const jwt = jwtHelper.generateJwt(callRequest);
+        if (callRequest.onesignalPlayerId) {
+            pushNotificationHelper.sendPushNotification(
+                'Has sido llamado por la tienda',
+                [callRequest.onesignalPlayerId],
+                { type: CALLED, callRequest, call, jwt }
+            );
+        }
+
+        // send response
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
     } catch (err) {
+        await waitingRoomModel.pushCallRequestInQueue(
+            waitingRoomId,
+            callRequestId
+        );
+
+        await callRequestModel.setState(callRequestId, IN_QUEUE);
+
         err.status = 500;
         return next(err);
     }
