@@ -48,8 +48,8 @@ router.post(
     [
         check('storeId').isInt(),
         check('email').isEmail(),
-        check('name').matches(/^[a-z ]+$/i),
-        check('lastName').matches(/^[a-z ]+$/i),
+        check('name').matches(/^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/i),
+        check('lastName').matches(/^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/i),
     ],
     paramsValidatorMidd.validateParams,
     storeMidd.storeExists,
