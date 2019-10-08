@@ -168,7 +168,7 @@ const finishCallRequest = async (req, res, next) => {
         // set finished state
         await callRequestModel.setState(callRequestId, FINISHED);
 
-        // send email with instructions if have purchase orders
+        // if have purchase orders: send email with instructions
         const purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
             callRequest.callRequestId
         );

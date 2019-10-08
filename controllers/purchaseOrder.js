@@ -43,6 +43,8 @@ const createPurchaseOrder = async (req, res, next) => {
             items,
         } = req.body;
 
+        // create mercadopago preference
+
         const purchaseOrderId = await purchaseOrderModel.createPurchaseOrder(
             callRequestId,
             shippingOptionId,
