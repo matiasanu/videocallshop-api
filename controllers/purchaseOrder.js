@@ -1,5 +1,10 @@
+// models
 const callRequestModel = require('../models/callRequest');
 const purchaseOrderModel = require('../models/purchaseOrder');
+const storeModel = require('../models/store');
+
+//helpers
+const mercadopagoHelper = require('../helpers/mercadopago');
 
 const CALLED = 'CALLED';
 
@@ -44,7 +49,29 @@ const createPurchaseOrder = async (req, res, next) => {
         } = req.body;
 
         // create mercadopago preference
+        const mercadopagoItems = [];
+        let item;
+        for (item of items) {
+            mercadopagoItems.push({
+                title: item.productName,
+                description: item.productDescription,
+                quantity: parseInt(item.quantity),
+                currency_id: 'ARS',
+                unit_price: parseFloat(item.unitPrice),
+            });
+        }
 
+        const storeId = parseInt(req.params.storeId);
+        const store = await storeModel.getStore(storeId);
+        const externalReference = callRequest.callRequestId.toString();
+
+        const mercadopagoPreference = await mercadopagoHelper.createPreference(
+            store.mercadopagoSandboxAccessToken,
+            mercadopagoItems,
+            externalReference
+        );
+
+        // create purchase order
         const purchaseOrderId = await purchaseOrderModel.createPurchaseOrder(
             callRequestId,
             shippingOptionId,
@@ -52,7 +79,8 @@ const createPurchaseOrder = async (req, res, next) => {
             paymentOptionId,
             province,
             city,
-            address
+            address,
+            mercadopagoPreference
         );
 
         const itemIds = await purchaseOrderModel.addItems(

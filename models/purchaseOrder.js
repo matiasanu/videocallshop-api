@@ -59,17 +59,19 @@ const createPurchaseOrder = async (
     paymentOptionId,
     province,
     city,
-    address
+    address,
+    mercadopagoPreference
 ) => {
     try {
         const now = new Date().toISOString();
-
+        console.log(mercadopagoPreference);
         province = province || null;
         city = city || null;
         address = address || null;
+        mercadopagoPreference = mercadopagoPreference || null;
 
         const result = await pool.query(
-            `INSERT INTO purchase_orders(call_request_id, shipping_option_id, shipping_price, payment_option_id, province, city, address, created_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING purchase_order_id;`,
+            `INSERT INTO purchase_orders(call_request_id, shipping_option_id, shipping_price, payment_option_id, province, city, address, mercadopago_preference, created_on) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING purchase_order_id;`,
             [
                 callRequestId,
                 shippingOptionId,
@@ -78,6 +80,7 @@ const createPurchaseOrder = async (
                 province,
                 city,
                 address,
+                mercadopagoPreference,
                 now,
             ]
         );
