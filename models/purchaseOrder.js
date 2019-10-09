@@ -64,7 +64,7 @@ const createPurchaseOrder = async (
 ) => {
     try {
         const now = new Date().toISOString();
-        console.log(mercadopagoPreference);
+
         province = province || null;
         city = city || null;
         address = address || null;
