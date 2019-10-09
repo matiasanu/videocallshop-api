@@ -36,8 +36,11 @@ const sendPurchaseInstructions = async (
         switch (parseInt(purchaseOrder.paymentOptionId)) {
             case 1:
                 followingSteps += `RETIRE EL PRODUCTO POR ${store.name} (${store.address})`;
+                break;
             case 2:
-                followingSteps += `REALICE EL PAGO A TRAVÉS DEL SIGUIENTE LINK: ${purchaseOrder.mercadoPagoPreference.response.init_point}`;
+                console.log('PURCHASE ORDER');
+                console.log(purchaseOrder);
+                followingSteps += `REALICE EL PAGO A TRAVÉS DEL SIGUIENTE LINK: ${purchaseOrder.mercadopagoPreference.response.init_point}`;
                 break;
         }
     } catch (err) {
