@@ -33,7 +33,7 @@ const sendPurchaseInstructions = async (
     let followingSteps = '';
     // mercadopago payment option
     try {
-        switch (parseInt(store.paymentOptionId)) {
+        switch (parseInt(purchaseOrder.paymentOptionId)) {
             case 1:
                 followingSteps += `RETIRE EL PRODUCTO POR ${store.name} (${store.address})`;
             case 2:
