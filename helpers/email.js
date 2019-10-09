@@ -33,8 +33,12 @@ const sendPurchaseInstructions = async (
     let followingSteps = '';
     // mercadopago payment option
     try {
-        if (parseInt(store.paymentOptionId) === 2) {
-            followingSteps += `REALICE EL PAGO A TRAVÉS DEL SIGUIENTE LINK: ${purchaseOrder.mercadoPagoPreference.response.init_point}`;
+        switch (parseInt(store.paymentOptionId)) {
+            case 1:
+                followingSteps += `RETIRE EL PRODUCTO POR ${store.name} (${store.address})`;
+            case 2:
+                followingSteps += `REALICE EL PAGO A TRAVÉS DEL SIGUIENTE LINK: ${purchaseOrder.mercadoPagoPreference.response.init_point}`;
+                break;
         }
     } catch (err) {
         console.log(err);
