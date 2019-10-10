@@ -38,7 +38,7 @@ const createPurchaseOrder = async (req, res, next) => {
 
     // create purchase order
     try {
-        const {
+        let {
             shippingOptionId,
             shippingPrice,
             paymentOptionId,
@@ -47,6 +47,11 @@ const createPurchaseOrder = async (req, res, next) => {
             address,
             items,
         } = req.body;
+
+        // if "Retiro en la tienda"
+        if (parseInt(shippingOptionId) === 1) {
+            shippingPrice = 0;
+        }
 
         // create mercadopago preference
         const mercadopagoItems = [];
