@@ -193,7 +193,7 @@ router.post(
             .optional()
             .isAscii(),
         check('items.*.unitPrice').isDecimal(),
-        check('items.*.quantity').isDecimal(),
+        check('items.*.quantity').isInt(),
     ],
     paramsValidatorMidd.validateParams,
     storeMidd.storeExists,

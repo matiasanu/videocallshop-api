@@ -20,15 +20,19 @@ const sendPurchaseInstructions = async (
     });
 
     let itemsHtml = '';
+    let total = 0;
     let item;
     for (item of items) {
         const { quantity, unitPrice, productName } = item;
+        let subtotal = unitPrice * quantity;
+        total += subtotal;
         itemsHtml += `<li style="font-size: 14px; line-height: 16px;">
             <span style="line-height: 16px; font-size: 14px;">
-                ${quantity} - ${productName} ($${unitPrice} c/u) - $${unitPrice *
-            quantity} 
+                ${quantity} - ${productName} ($${unitPrice} c/u) - $${subtotal} 
             </span></li>`;
     }
+
+    itemsHtml += `<p style="font-size: 14px; line-height: 16px;">Total: $${total}</p>`;
 
     let followingSteps = '';
     // mercadopago payment option

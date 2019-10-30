@@ -187,12 +187,12 @@ Attach a purchase order in a call request.
             "productName": "Tela negra",
             "productDescription": "Retazo de tela negra",
             "unitPrice": 291.2,
-            "quantity": 10.5
+            "quantity": 10
         },
         {
             "productName": "Cinta metrica",
             "unitPrice": 230,
-            "quantity": 12.5
+            "quantity": 12
         }
     ]
 }
