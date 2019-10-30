@@ -2,9 +2,12 @@
 const callRequestModel = require('../models/callRequest');
 const purchaseOrderModel = require('../models/purchaseOrder');
 const storeModel = require('../models/store');
+const paymentOptionModel = require('../models/paymentOption');
+const shippingOptionModel = require('../models/shippingOption');
 
 //helpers
 const mercadopagoHelper = require('../helpers/mercadopago');
+const emailHelper = require('../helpers/email');
 
 const CALLED = 'CALLED';
 
@@ -100,6 +103,28 @@ const createPurchaseOrder = async (req, res, next) => {
 
         purchaseOrder.items = await purchaseOrderModel.getPurchaseOrderItems(
             purchaseOrderId
+        );
+
+        // send email with instructions
+        const paymentOption = await paymentOptionModel.getPaymentOption(
+            paymentOptionId
+        );
+
+        const shippingOption = await shippingOptionModel.getShippingOption(
+            shippingOptionId
+        );
+
+        const itemsFetched = await purchaseOrderModel.getPurchaseOrderItems(
+            purchaseOrderId
+        );
+
+        emailHelper.sendPurchaseInstructions(
+            callRequest,
+            purchaseOrder,
+            itemsFetched,
+            paymentOption,
+            shippingOption,
+            store
         );
 
         const status = 200;

@@ -1,14 +1,9 @@
 //helpers
 const jwtHelper = require('../helpers/jwt');
-const emailHelper = require('../helpers/email');
 
 // models
 const waitingRoomModel = require('../models/waitingRoom');
 const callRequestModel = require('../models/callRequest');
-const purchaseOrderModel = require('../models/purchaseOrder');
-const storeModel = require('../models/store');
-const paymentOptionModel = require('../models/paymentOption');
-const shippingOptionModel = require('../models/shippingOption');
 
 const NEW = 'NEW';
 const IN_QUEUE = 'IN_QUEUE';
@@ -167,45 +162,6 @@ const finishCallRequest = async (req, res, next) => {
 
         // set finished state
         await callRequestModel.setState(callRequestId, FINISHED);
-
-        // if have purchase orders: send email with instructions
-        const purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
-            callRequest.callRequestId
-        );
-
-        if (purchaseOrders.length > 0) {
-            const store = await storeModel.getStore(callRequest.storeId);
-
-            let purchaseOrder;
-            for (purchaseOrder of purchaseOrders) {
-                const {
-                    paymentOptionId,
-                    shippingOptionId,
-                    purchaseOrderId,
-                } = purchaseOrder;
-
-                const paymentOption = await paymentOptionModel.getPaymentOption(
-                    paymentOptionId
-                );
-
-                const shippingOption = await shippingOptionModel.getShippingOption(
-                    shippingOptionId
-                );
-
-                const items = await purchaseOrderModel.getPurchaseOrderItems(
-                    purchaseOrderId
-                );
-
-                emailHelper.sendPurchaseInstructions(
-                    callRequest,
-                    purchaseOrder,
-                    items,
-                    paymentOption,
-                    shippingOption,
-                    store
-                );
-            }
-        }
 
         // send response
         const status = 200;
