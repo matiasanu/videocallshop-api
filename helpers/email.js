@@ -17,6 +17,9 @@ const sendPurchaseInstructions = async (
             user: process.env.EMAIL_AUTH_USER,
             pass: process.env.EMAIL_AUTH_PASS,
         },
+        tls: {
+            rejectUnauthorized: false,
+        },
     });
 
     let itemsHtml = '';
