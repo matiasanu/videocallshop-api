@@ -73,11 +73,17 @@ const createPurchaseOrder = async (req, res, next) => {
         const store = await storeModel.getStore(storeId);
         const externalReference = callRequest.callRequestId.toString();
 
-        const mercadopagoPreference = await mercadopagoHelper.createPreference(
-            store.mercadopagoSandboxAccessToken,
-            mercadopagoItems,
-            externalReference
-        );
+        // payment through mercadopago
+        let mercadopagoPreference = null;
+        if (paymentOptionId === 2) {
+            mercadopagoPreference = await mercadopagoHelper.createPreference(
+                store.mercadopagoSandboxAccessToken,
+                store.mercadopagoClientId,
+                store.mercadopagoClientSecret,
+                mercadopagoItems,
+                externalReference
+            );
+        }
 
         // create purchase order
         const purchaseOrderId = await purchaseOrderModel.createPurchaseOrder(
