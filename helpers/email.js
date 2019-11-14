@@ -37,18 +37,62 @@ const sendPurchaseInstructions = async (
 
     itemsHtml += `<p style="font-size: 14px; line-height: 16px;">Total: $${total}</p>`;
 
+    // following steps
     let followingSteps = '';
-    // mercadopago payment option
     try {
-        switch (parseInt(purchaseOrder.paymentOptionId)) {
-            case 1:
-                followingSteps += `RETIRE EL PRODUCTO POR ${store.name} (${store.address})`;
-                break;
-            case 2:
-                console.log('PURCHASE ORDER');
-                console.log(purchaseOrder);
-                followingSteps += `REALICE EL PAGO A TRAVÉS DEL SIGUIENTE LINK: ${purchaseOrder.mercadopagoPreference.response.init_point}`;
-                break;
+        const paymentOptionId = parseInt(
+            purchaseOrder.paymentOption.paymentOptionId
+        );
+        const shippingOptionId = parseInt(
+            purchaseOrder.shippingOption.shippingOptionId
+        );
+
+        /*
+        +----------------------+---------------------+
+        | shipping_option_id   | description         |
+        |----------------------+---------------------|
+        | 1                    | Retiro en la tienda |
+        | 2                    | Envio a domicilio   |
+        +----------------------+---------------------+
+
+        +---------------------+----------------------+
+        | payment_option_id   | description          |
+        |---------------------+----------------------|
+        | 1                   | Pago en el domicilio |
+        | 2                   | Pago con MercadoPago |
+        | 3                   | Pago en tienda       |
+        +---------------------+----------------------+
+        */
+
+        // Retiro en la tienda && Pago con MercadoPago
+        if (shippingOptionId === 1 && paymentOptionId === 2) {
+            followingSteps += `Para finalizar su compra deberá pagar la misma a través del siguiente link: ${purchaseOrder.mercadopagoPreference.response.init_point}.<br/>`;
+            followingSteps += `Luego deberá acercarse a la tienda ${store.name} ubicada en <b>${store.address}</b> para retirar su pedido.`;
+        }
+
+        // Retiro en la tienda && (Pago en tienda || Pago en el domicilio)
+        if (
+            shippingOptionId === 1 &&
+            (paymentOptionId === 1 || paymentOptionId === 3)
+        ) {
+            followingSteps += `Para finalizar su compra deberá acercarse a la tienda ${store.name} ubicada en <b>${store.address}</b> para pagar y retirar su pedido.`;
+        }
+
+        // Envio a domicilio && Pago en el domicilio
+        if (shippingOptionId === 2 && paymentOptionId === 1) {
+            followingSteps += `Ha finalizado su compra, le llegará su pedido al domicilio <b>${purchaseOrder.address}, ${purchaseOrder.city}, ${purchaseOrder.province}</b> y podrá pagarlo contra entrega en efectivo.`;
+        }
+
+        // Envio a domicilio  && Pago con MercadoPago
+        if (shippingOptionId === 2 && paymentOptionId === 2) {
+            followingSteps += `Para finalizar su compra deberá pagar la misma a través del siguiente link: ${purchaseOrder.mercadopagoPreference.response.init_point}.<br/>`;
+            followingSteps += `Luego le llegará su pedido al domicilio <b>${purchaseOrder.address}, ${purchaseOrder.city}, ${purchaseOrder.province}</b>.`;
+        }
+
+        // Envio a domicilio && Pago en tienda
+        if (shippingOptionId === 2 && paymentOptionId === 3) {
+            followingSteps += `Para finalizar su compra deberá acercarse a la tienda ${store.name} ubicada en <b>${store.address}</b> para pagar.<br/>`;
+            followingSteps += `Luego le llegará su pedido al domicilio <b>${purchaseOrder.address}, ${purchaseOrder.city}, ${purchaseOrder.province}</b>.`;
         }
     } catch (err) {
         console.log(err);
