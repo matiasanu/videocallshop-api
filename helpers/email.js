@@ -263,7 +263,7 @@ const sendPurchaseInstructions = async (
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${purchaseOrder.address}</span></p>
                                                                 
                                                                 <p style="font-size: 12px; line-height: 14px; margin: 0;"> </p>
-                                                                <p style="font-size: 12px; line-height: 14px; text-align: center; margin: 0;"><strong><span style="font-size: 14px; line-height: 16px;">Para finalizar siga los siguientes pasos</span></strong></p>
+                                                                <p style="font-size: 12px; line-height: 14px; text-align: center; margin: 0;"><strong><span style="font-size: 14px; line-height: 16px;">Siga los siguientes pasos</span></strong></p>
                                                                 ${followingSteps}
                                                             </div>
                                                         </div>
