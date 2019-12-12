@@ -40,12 +40,8 @@ const sendPurchaseInstructions = async (
     // following steps
     let followingSteps = '';
     try {
-        const paymentOptionId = parseInt(
-            purchaseOrder.paymentOption.paymentOptionId
-        );
-        const shippingOptionId = parseInt(
-            purchaseOrder.shippingOption.shippingOptionId
-        );
+        const paymentOptionId = parseInt(paymentOption.paymentOptionId);
+        const shippingOptionId = parseInt(shippingOption.shippingOptionId);
 
         /*
         +----------------------+---------------------+
