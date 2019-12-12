@@ -26,13 +26,15 @@ const sendPurchaseInstructions = async (
     let total = 0;
     let item;
     for (item of items) {
-        const { quantity, unitPrice, productName } = item;
+        const { quantity, unitPrice, productName, productDescription } = item;
         let subtotal = unitPrice * quantity;
         total += subtotal;
-        itemsHtml += `<li style="font-size: 14px; line-height: 16px;">
+        itemsHtml += `<li style="font-size: 14px; line-height: 16px; margin-bottom: 10px;">
             <span style="line-height: 16px; font-size: 14px;">
                 ${quantity} - ${productName} ($${unitPrice} c/u) - $${subtotal} 
-            </span></li>`;
+            </span> <br/>
+            ${productDescription ? `<span>${productDescription}</span>` : ``}
+        </li>`;
     }
 
     itemsHtml += `<p style="font-size: 14px; line-height: 16px;">Total: $${total}</p>`;
