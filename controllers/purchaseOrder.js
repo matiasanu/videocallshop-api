@@ -11,7 +11,9 @@ const CALLED = 'CALLED';
 const createPurchaseOrder = async (req, res, next) => {
     // authorization
     try {
-        const hasAccess = req.authorization.storeUser.thisStore;
+        const hasAccess =
+            req.authorization.storeUser.thisStore ||
+            req.authorization.callRequestToken.thisStore;
 
         if (!hasAccess) {
             throw new Error('Unauthorized.');
