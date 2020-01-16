@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const storeUserModel = require('../models/storeUser');
 
 const authenticateStoreUser = async (req, res, next) => {
-    const { email, password } = req.body;
+    const { email, password, onesignalPlayerId } = req.body;
 
     // unauthorized error
     const unauthorizedErr = new Error('Incorrect email or password.');
@@ -23,7 +23,10 @@ const authenticateStoreUser = async (req, res, next) => {
             // create session for the user
             req.session.storeUser = user;
 
-            await storeUserModel.updateLastLoginByEmail(email);
+            await storeUserModel.updateLastLoginByEmail(
+                email,
+                onesignalPlayerId
+            );
 
             const status = 200;
             res.status(status);
