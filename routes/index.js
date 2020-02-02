@@ -12,6 +12,7 @@ const callRequestCtrl = require('../controllers/callRequest');
 const purchaseOrderCtrl = require('../controllers/purchaseOrder');
 const paymentOptionCtrl = require('../controllers/paymentOption');
 const shippingOptionCtrl = require('../controllers/shippingOption');
+const mercadopagoCtrl = require('../controllers/mercadopago');
 
 // middlewares
 const paramsValidatorMidd = require('../middlewares/paramsValidator');
@@ -30,6 +31,13 @@ router.post(
     [check('email').isEmail()],
     paramsValidatorMidd.validateParams,
     authenticationCtrl.authenticateStoreUser
+);
+
+// mercadopago
+router.get(
+    // store authorization code from mercadopago
+    '/mercadopago/store-authorization-code',
+    mercadopagoCtrl.storeAuthorizationCode
 );
 
 // stores
