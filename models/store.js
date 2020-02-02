@@ -24,7 +24,24 @@ const getStores = async () => {
     }
 };
 
+const storeMercadopagoAuthorizatinoCode = async (
+    storeId,
+    mercadopagoAuthorizartionCode
+) => {
+    try {
+        const result = await pool.query(
+            `UPDATE stores SET mercadopago_authorization_code='${mercadopagoAuthorizartionCode}' WHERE store_id='${storeId}';`
+        );
+
+        return result.rowCount;
+    } catch (err) {
+        console.log('ERROR query storeMercadopagoAuthorizatinoCode');
+        throw new Error(err.message);
+    }
+};
+
 module.exports = {
     getStores,
     getStore,
+    storeMercadopagoAuthorizatinoCode,
 };
