@@ -46,7 +46,7 @@ const storeAuthorizationCode = async (req, res, next) => {
 
         const status = 200;
         res.status(status);
-        res.send({ status });
+        res.send({ status, credentials });
     } catch (err) {
         err.status = 500;
         return next(err);
