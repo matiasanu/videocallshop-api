@@ -47,6 +47,8 @@ const getAuthorizationUrl = async (req, res, next) => {
             req.headers.host
         );
 
+        console.log(url);
+
         res.redirect(url);
     } catch (err) {
         err.status = 500;
