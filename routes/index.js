@@ -50,6 +50,14 @@ router.get(
     storeCtrl.getStore
 );
 
+router.get(
+    '/stores/:storeId/mercadopago-authorization-url',
+    [check('storeId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    storeCtrl.getAuthorizationUrl
+);
+
 // call requests
 router.post(
     '/stores/:storeId/call-requests',
