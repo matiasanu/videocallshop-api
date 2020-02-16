@@ -43,13 +43,15 @@ const updateMercadopagoAuthorizationCode = async (
 const updateMercadopagoAccessToken = async (
     storeId,
     mercadopagoAccessToken,
-    mercadopagoRefreshToken
+    mercadopagoRefreshToken,
+    pristine
 ) => {
     try {
         const now = new Date().toISOString();
+        pristine = JSON.stringify(pristine);
 
         const result = await pool.query(
-            `UPDATE stores SET mercadopago_access_token='${mercadopagoAccessToken}', mercadopago_refresh_token='${mercadopagoRefreshToken}', mercadopago_access_token_created_on='${now}' WHERE store_id='${storeId}';`
+            `UPDATE stores SET mercadopago_access_token='${mercadopagoAccessToken}', mercadopago_refresh_token='${mercadopagoRefreshToken}', mercadopago_access_token_created_on='${now}', mercadopago_pristine_access_token='${pristine}' WHERE store_id='${storeId}';`
         );
 
         return result.rowCount;

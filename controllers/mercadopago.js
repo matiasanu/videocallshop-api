@@ -36,13 +36,12 @@ const storeAuthorizationCode = async (req, res, next) => {
             storeId
         );
 
-        console.log(':::', credentials);
-
         // store access tokens
         await storeModel.updateMercadopagoAccessToken(
             storeId,
             credentials.access_token,
-            credentials.refresh_token
+            credentials.refresh_token,
+            credentials
         );
 
         const status = 200;
