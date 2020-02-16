@@ -203,3 +203,15 @@ Attach a purchase order in a call request.
 
 ###### Auth
 storeUser.thisStore
+
+### `GET` - `/stores/:storeId/mercadopago-authorization-url`
+Create a link to associate the store with Videocallshop Marketplace (Mercadopago).
+
+###### Auth
+public
+
+### `GET` - `/mercadopago/store-authorization-code`
+Mercadopago redirect_uri. Stores authorization code and creates an access token for the store.
+
+###### Auth
+public
