@@ -35,8 +35,8 @@ const createPreference = (
     return mp.preferences.create(preferenceOptions);
 };
 
-const getAuthorizationUrl = (store, host) => {
-    return `https://auth.mercadopago.com.ar/authorization?client_id=${store.mercadopagoClientId}&APP_ID=${process.env.MERCADOPAGO_MARKETPLACE_APP_ID}&response_type=code&platform_id=mp&redirect_uri=${host}/mercadopago/store-authorization-code?storeId=${store.storeId}`;
+const getAuthorizationUrl = (store, protocol, host) => {
+    return `https://auth.mercadopago.com.ar/authorization?client_id=${store.mercadopagoClientId}&APP_ID=${process.env.MERCADOPAGO_MARKETPLACE_APP_ID}&response_type=code&platform_id=mp&redirect_uri=${protocol}://${host}/mercadopago/store-authorization-code?storeId=${store.storeId}`;
 };
 
 module.exports = {

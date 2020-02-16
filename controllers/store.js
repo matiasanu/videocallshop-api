@@ -43,6 +43,7 @@ const getAuthorizationUrl = async (req, res, next) => {
 
         let url = mercadopagoHelper.getAuthorizationUrl(
             store,
+            req.protocol,
             req.headers.host
         );
 
