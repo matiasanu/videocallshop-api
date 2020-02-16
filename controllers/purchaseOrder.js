@@ -74,9 +74,7 @@ const createPurchaseOrder = async (req, res, next) => {
         let mercadopagoPreference = null;
         if (paymentOptionId === 2) {
             mercadopagoPreference = await mercadopagoHelper.createPreference(
-                store.mercadopagoSandboxAccessToken,
-                store.mercadopagoClientId,
-                store.mercadopagoClientSecret,
+                store.mercadopagoAccessToken,
                 mercadopagoItems,
                 externalReference
             );
