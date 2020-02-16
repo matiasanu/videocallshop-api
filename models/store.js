@@ -24,7 +24,7 @@ const getStores = async () => {
     }
 };
 
-const storeMercadopagoAuthorizatinoCode = async (
+const updateMercadopagoAuthorizationCode = async (
     storeId,
     mercadopagoAuthorizartionCode
 ) => {
@@ -35,7 +35,26 @@ const storeMercadopagoAuthorizatinoCode = async (
 
         return result.rowCount;
     } catch (err) {
-        console.log('ERROR query storeMercadopagoAuthorizatinoCode');
+        console.log('ERROR query updateMercadopagoAuthorizatinoCode');
+        throw new Error(err.message);
+    }
+};
+
+const updateMercadopagoAccessToken = async (
+    storeId,
+    mercadopagoAccessToken,
+    mercadopagoRefreshToken
+) => {
+    try {
+        const now = new Date().toISOString();
+
+        const result = await pool.query(
+            `UPDATE stores SET mercadopago_access_token='${mercadopagoAccessToken}', mercadopago_refresh_token='${mercadopagoRefreshToken}', mercadopago_access_token_created_on='${now}' WHERE store_id='${storeId}';`
+        );
+
+        return result.rowCount;
+    } catch (err) {
+        console.log('ERROR query updateMercadopagoAccessToken');
         throw new Error(err.message);
     }
 };
@@ -43,5 +62,6 @@ const storeMercadopagoAuthorizatinoCode = async (
 module.exports = {
     getStores,
     getStore,
-    storeMercadopagoAuthorizatinoCode,
+    updateMercadopagoAuthorizationCode,
+    updateMercadopagoAccessToken,
 };

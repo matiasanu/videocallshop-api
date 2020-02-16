@@ -35,7 +35,7 @@ router.post(
 
 // mercadopago
 router.get(
-    // store authorization code from mercadopago
+    // MP STEP 2: redirect_url (store authorization code and generate token)
     '/mercadopago/store-authorization-code',
     mercadopagoCtrl.storeAuthorizationCode
 );
@@ -51,6 +51,7 @@ router.get(
 );
 
 router.get(
+    // MP STEP 1: get invite link
     '/stores/:storeId/mercadopago-authorization-url',
     [check('storeId').isInt()],
     paramsValidatorMidd.validateParams,
