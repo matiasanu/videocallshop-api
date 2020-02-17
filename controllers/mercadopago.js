@@ -36,7 +36,7 @@ const storeAuthorizationCode = async (req, res, next) => {
             storeId
         );
 
-        if (credentials.status === '200') {
+        if (credentials.access_token) {
             // store access tokens
             await storeModel.updateMercadopagoAccessToken(
                 storeId,
