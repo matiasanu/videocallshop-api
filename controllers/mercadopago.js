@@ -49,6 +49,7 @@ const storeAuthorizationCode = async (req, res, next) => {
             res.status(status);
             res.send({ status, credentials });
         } else {
+            console.log('-- MERCADOPAGO ERROR --', credentials);
             const err = new Error(credentials.message);
             err.status = 500;
             return next(err);
