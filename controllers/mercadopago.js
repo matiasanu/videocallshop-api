@@ -36,17 +36,23 @@ const storeAuthorizationCode = async (req, res, next) => {
             storeId
         );
 
-        // store access tokens
-        await storeModel.updateMercadopagoAccessToken(
-            storeId,
-            credentials.access_token,
-            credentials.refresh_token,
-            credentials
-        );
+        if (credentials.status === '200') {
+            // store access tokens
+            await storeModel.updateMercadopagoAccessToken(
+                storeId,
+                credentials.access_token,
+                credentials.refresh_token,
+                credentials
+            );
 
-        const status = 200;
-        res.status(status);
-        res.send({ status, credentials });
+            const status = 200;
+            res.status(status);
+            res.send({ status, credentials });
+        } else {
+            const err = new Error(credentials.message);
+            err.status = 500;
+            return next(err);
+        }
     } catch (err) {
         err.status = 500;
         return next(err);
