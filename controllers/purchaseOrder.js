@@ -66,6 +66,17 @@ const createPurchaseOrder = async (req, res, next) => {
             });
         }
 
+        // Costo de envio
+        if (shippingPrice) {
+            mercadopagoItems.push({
+                title: 'Costo de envio',
+                description: 'Costo de envio',
+                quantity: 1,
+                currency_id: 'ARS',
+                unit_price: shippingPrice,
+            });
+        }
+
         const storeId = parseInt(req.params.storeId);
         const store = await storeModel.getStore(storeId);
         const externalReference = callRequest.callRequestId.toString();
