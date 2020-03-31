@@ -33,6 +33,7 @@ app.use(bodyParser.json()); // parse application/json
 app.use(bodyParser.json());
 app.use(logger('dev'));
 app.use(express.static('public'));
+app.use(express.static('resources'));
 app.use(cookieParser());
 app.use(session);
 app.use('/', routes);
