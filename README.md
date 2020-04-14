@@ -36,7 +36,8 @@ Authenticate a store user.
 ```
 {
     "email": "maurocg89@gmail.com",
-    "password": "sonserios10"
+    "password": "sonserios10",
+    "onesignalPlayerId": "6392d91a-b206-4b7b-a620-cd68e32c3a76"
 }
  ```
 
