@@ -1,6 +1,7 @@
 // third libraries
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 
@@ -28,6 +29,7 @@ const routes = require('./routes/index');
 const app = express();
 const http = require('http').Server(app);
 
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // parse application/json
 app.use(bodyParser.json());
