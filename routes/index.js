@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { check } = require('express-validator/check');
+const { check } = require('express-validator');
 
 // controllers
 const authenticationCtrl = require('../controllers/authentication');
@@ -12,6 +12,7 @@ const callRequestCtrl = require('../controllers/callRequest');
 const purchaseOrderCtrl = require('../controllers/purchaseOrder');
 const paymentOptionCtrl = require('../controllers/paymentOption');
 const shippingOptionCtrl = require('../controllers/shippingOption');
+const mercadopagoCtrl = require('../controllers/mercadopago');
 
 // middlewares
 const paramsValidatorMidd = require('../middlewares/paramsValidator');
@@ -32,6 +33,13 @@ router.post(
     authenticationCtrl.authenticateStoreUser
 );
 
+// mercadopago
+router.get(
+    // MP STEP 2: redirect_url (store authorization code and generate token)
+    '/mercadopago/store-authorization-code',
+    mercadopagoCtrl.storeAuthorizationCode
+);
+
 // stores
 router.get('/stores', storeCtrl.getStores);
 
@@ -42,14 +50,23 @@ router.get(
     storeCtrl.getStore
 );
 
+router.get(
+    // MP STEP 1: get invite link
+    '/stores/:storeId/mercadopago-authorization-url',
+    [check('storeId').isInt()],
+    paramsValidatorMidd.validateParams,
+    storeMidd.storeExists,
+    storeCtrl.getAuthorizationUrl
+);
+
 // call requests
 router.post(
     '/stores/:storeId/call-requests',
     [
         check('storeId').isInt(),
         check('email').isEmail(),
-        check('name').matches(/^[a-z ]+$/i),
-        check('lastName').matches(/^[a-z ]+$/i),
+        check('name').matches(/^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/i),
+        check('lastName').matches(/^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/i),
     ],
     paramsValidatorMidd.validateParams,
     storeMidd.storeExists,
@@ -193,7 +210,7 @@ router.post(
             .optional()
             .isAscii(),
         check('items.*.unitPrice').isDecimal(),
-        check('items.*.quantity').isDecimal(),
+        check('items.*.quantity').isInt(),
     ],
     paramsValidatorMidd.validateParams,
     storeMidd.storeExists,

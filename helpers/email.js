@@ -17,17 +17,83 @@ const sendPurchaseInstructions = async (
             user: process.env.EMAIL_AUTH_USER,
             pass: process.env.EMAIL_AUTH_PASS,
         },
+        tls: {
+            rejectUnauthorized: false,
+        },
     });
 
     let itemsHtml = '';
+    let total = 0;
     let item;
     for (item of items) {
-        const { quantity, unitPrice, productName } = item;
-        itemsHtml += `<li style="font-size: 14px; line-height: 16px;">
+        const { quantity, unitPrice, productName, productDescription } = item;
+        let subtotal = unitPrice * quantity;
+        total += subtotal;
+        itemsHtml += `<li style="font-size: 14px; line-height: 16px; margin-bottom: 10px;">
             <span style="line-height: 16px; font-size: 14px;">
-                ${quantity} - ${productName} ($${unitPrice} c/u) - $${unitPrice *
-            quantity} 
-            </span></li>`;
+                ${quantity} - ${productName} ($${unitPrice} c/u) - $${subtotal} 
+            </span> <br/>
+            ${productDescription ? `<span>${productDescription}</span>` : ``}
+        </li>`;
+    }
+
+    itemsHtml += `<p style="font-size: 14px; line-height: 16px;">Total: $${total}</p>`;
+
+    // following steps
+    let followingSteps = '';
+    try {
+        const paymentOptionId = parseInt(paymentOption.paymentOptionId);
+        const shippingOptionId = parseInt(shippingOption.shippingOptionId);
+
+        /*
+        +----------------------+---------------------+
+        | shipping_option_id   | description         |
+        |----------------------+---------------------|
+        | 1                    | Retiro en la tienda |
+        | 2                    | Envio a domicilio   |
+        +----------------------+---------------------+
+
+        +---------------------+----------------------+
+        | payment_option_id   | description          |
+        |---------------------+----------------------|
+        | 1                   | Pago en el domicilio |
+        | 2                   | Pago con MercadoPago |
+        | 3                   | Pago en tienda       |
+        +---------------------+----------------------+
+        */
+
+        // Retiro en la tienda && Pago con MercadoPago
+        if (shippingOptionId === 1 && paymentOptionId === 2) {
+            followingSteps += `Para finalizar su compra deberá pagar la misma a través del siguiente link: ${purchaseOrder.mercadopagoPreference.response.init_point}.<br/>`;
+            followingSteps += `Luego deberá acercarse a la tienda ${store.name} ubicada en <b>${store.address}</b> para retirar su pedido.`;
+        }
+
+        // Retiro en la tienda && (Pago en tienda || Pago en el domicilio)
+        if (
+            shippingOptionId === 1 &&
+            (paymentOptionId === 1 || paymentOptionId === 3)
+        ) {
+            followingSteps += `Para finalizar su compra deberá acercarse a la tienda ${store.name} ubicada en <b>${store.address}</b> para pagar y retirar su pedido.`;
+        }
+
+        // Envio a domicilio && Pago en el domicilio
+        if (shippingOptionId === 2 && paymentOptionId === 1) {
+            followingSteps += `Ha finalizado su compra, le llegará su pedido al domicilio <b>${purchaseOrder.address}, ${purchaseOrder.city}, ${purchaseOrder.province}</b> y podrá pagarlo contra entrega en efectivo.`;
+        }
+
+        // Envio a domicilio  && Pago con MercadoPago
+        if (shippingOptionId === 2 && paymentOptionId === 2) {
+            followingSteps += `Para finalizar su compra deberá pagar la misma a través del siguiente link: ${purchaseOrder.mercadopagoPreference.response.init_point}.<br/>`;
+            followingSteps += `Luego le llegará su pedido al domicilio <b>${purchaseOrder.address}, ${purchaseOrder.city}, ${purchaseOrder.province}</b>.`;
+        }
+
+        // Envio a domicilio && Pago en tienda
+        if (shippingOptionId === 2 && paymentOptionId === 3) {
+            followingSteps += `Para finalizar su compra deberá acercarse a la tienda ${store.name} ubicada en <b>${store.address}</b> para pagar.<br/>`;
+            followingSteps += `Luego le llegará su pedido al domicilio <b>${purchaseOrder.address}, ${purchaseOrder.city}, ${purchaseOrder.province}</b>.`;
+        }
+    } catch (err) {
+        console.log(err);
     }
 
     let html = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -164,9 +230,7 @@ const sendPurchaseInstructions = async (
                                                         <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 10px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; font-family: Arial, sans-serif"><![endif]-->
                                                         <div style="color:#555555;font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif;line-height:120%;padding-top:10px;padding-right:10px;padding-bottom:10px;padding-left:10px;">
                                                             <div style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; font-size: 12px; line-height: 14px; color: #555555;">
-                                                                <p style="font-size: 14px; line-height: 16px; margin: 0;"><span style="line-height: 16px; font-size: 14px;">Gracias por tu compra en <strong>${
-                                                                    store.name
-                                                                }</strong>!</span></p>
+                                                                <p style="font-size: 14px; line-height: 16px; margin: 0;"><span style="line-height: 16px; font-size: 14px;">Gracias por tu compra en <strong>${store.name}</strong>!</span></p>
                                                                 <p style="font-size: 14px; line-height: 16px; margin: 0;"> </p>
                                                                 
                                                                 <p style="font-size: 14px; line-height: 16px; margin: 0;"><span style="line-height: 16px; font-size: 14px;"><strong>Productos</strong></span></p>
@@ -176,42 +240,31 @@ const sendPurchaseInstructions = async (
                                                                 
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"> </span></p>
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"><strong>Método de envío</strong></span></p>
-                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${
-                                                                    shippingOption.description
-                                                                }</span></p>
+                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${shippingOption.description}</span></p>
                                                                 
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"> </span></p>
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"><strong>Costo de envío</strong></span></p>
-                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">$${
-                                                                    purchaseOrder.shippingPrice
-                                                                }</span></p>
+                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">$${purchaseOrder.shippingPrice}</span></p>
                                                                 
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"> </span></p>
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"><strong>Forma de pago</strong></span></p>
-                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${
-                                                                    paymentOption.description
-                                                                }</span></p>
+                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${paymentOption.description}</span></p>
                                                                 
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"> </span></p>
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"><strong>Provincia</strong></span></p>
-                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${
-                                                                    purchaseOrder.province
-                                                                }</span></p>
+                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${purchaseOrder.province}</span></p>
                                                                 
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"> </span></p>
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"><strong>Ciudad</strong></span></p>
-                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${
-                                                                    purchaseOrder.city
-                                                                }</span></p>
+                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${purchaseOrder.city}</span></p>
                                                                 
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"> </span></p>
                                                                 <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;"><strong>Dirección</strong></span></p>
-                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${
-                                                                    purchaseOrder.address
-                                                                }</span></p>
+                                                                <p style="font-size: 12px; line-height: 16px; margin: 0;"><span style="font-size: 14px;">${purchaseOrder.address}</span></p>
                                                                 
                                                                 <p style="font-size: 12px; line-height: 14px; margin: 0;"> </p>
-                                                                <p style="font-size: 12px; line-height: 14px; text-align: center; margin: 0;"><strong><span style="font-size: 14px; line-height: 16px;">Para finalizar siga los siguientes pasos</span></strong></p>
+                                                                <p style="font-size: 12px; line-height: 14px; text-align: center; margin: 0;"><strong><span style="font-size: 14px; line-height: 16px;">Siga los siguientes pasos</span></strong></p>
+                                                                ${followingSteps}
                                                             </div>
                                                         </div>
                                                         <!--[if mso]></td></tr></table><![endif]-->
@@ -235,14 +288,20 @@ const sendPurchaseInstructions = async (
         </html>`;
 
     // send mail with defined transport object
-    let info = await transporter.sendMail({
-        from: '"Matías Nuñez de Video Call Shop 👻" <info@videocallshop.com>', // sender address
-        to: callRequest.email, // list of receivers
-        subject: 'Gracias por tu compra en Video Call Shop ✔', // Subject line
-        html, // html body
-    });
+    try {
+        let info = await transporter.sendMail({
+            from:
+                '"Matías Nuñez de Video Call Shop 👻" <info@videocallshop.com>', // sender address
+            bcc: store.email,
+            to: callRequest.email, // list of receivers
+            subject: 'Gracias por tu compra en Video Call Shop ✔', // Subject line
+            html, // html body
+        });
 
-    console.log('Email sent: %s', info.messageId);
+        console.log('Email sent: %s', info.messageId);
+    } catch (err) {
+        console.log('sendPurchaseInstructions error', err);
+    }
 };
 
 module.exports = {

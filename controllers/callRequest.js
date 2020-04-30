@@ -1,12 +1,14 @@
 //helpers
 const jwtHelper = require('../helpers/jwt');
 const emailHelper = require('../helpers/email');
+const pushNotificationHelper = require('../helpers/pushNotification');
 
 // models
 const waitingRoomModel = require('../models/waitingRoom');
 const callRequestModel = require('../models/callRequest');
 const purchaseOrderModel = require('../models/purchaseOrder');
 const storeModel = require('../models/store');
+const storeUserModel = require('../models/storeUser');
 const paymentOptionModel = require('../models/paymentOption');
 const shippingOptionModel = require('../models/shippingOption');
 
@@ -68,6 +70,18 @@ const createCallRequest = async (req, res, next) => {
         const callRequestCreated = await callRequestModel.getCallRequest(
             callRequestId
         );
+
+        // send push notifications to store users
+        const storeUsers = await storeUserModel.getUsersByStoreId(storeId);
+        for (storeUser of storeUsers) {
+            if (storeUser.onesignalPlayerId) {
+                pushNotificationHelper.sendPushNotification(
+                    'Una nueva llamada ha sido agregada a la cola',
+                    [storeUser.onesignalPlayerId],
+                    callRequestCreated
+                );
+            }
+        }
 
         // generate jwt and response
         const jwt = jwtHelper.generateJwt(callRequestCreated);
@@ -168,7 +182,7 @@ const finishCallRequest = async (req, res, next) => {
         // set finished state
         await callRequestModel.setState(callRequestId, FINISHED);
 
-        // send email with instructions if have purchase orders
+        // if have purchase orders: send email with instructions
         const purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
             callRequest.callRequestId
         );
