@@ -1,28 +1,26 @@
 const mp = require('mercadopago');
 const fetch = require('node-fetch');
 
+let mpOptions = {};
+// check if mercadopago is in productive or sandbox mode
+if (process.env.MERCADOPAGO_SANDBOX === 'TRUE') {
+    //sandbox
+    mpOptions.sandbox = true;
+    mpOptions.access_token =
+        process.env.MERCADOPAGO_MARKETPLACE_SANDBOX_ACCESS_TOKEN;
+    console.log('Generating MERCADOPAGO SANDBOX link', mpOptions);
+} else {
+    //productive
+    mpOptions.client_id = process.env.MERCADOPAGO_MARKETPLACE_CLIENT_ID;
+    mpOptions.client_secret = process.env.MERCADOPAGO_MARKETPLACE_CLIENT_SECRET;
+    console.log('Generating MERCADOPAGO PRODUCTIVE link', mpOptions);
+}
+
+mp.configure(mpOptions);
+
 const createPreference = (accessToken, items, externalReference) => {
     mp.configurations.setAccessToken(accessToken);
 
-    let mpOptions = {};
-    // check if mercadopago is in productive or sandbox mode
-    if (process.env.MERCADOPAGO_SANDBOX === 'TRUE') {
-        //sandbox
-        mpOptions.sandbox = true;
-        mpOptions.access_token =
-            process.env.MERCADOPAGO_MARKETPLACE_SANDBOX_ACCESS_TOKEN;
-        console.log('Generating MERCADOPAGO SANDBOX link', mpOptions);
-    } else {
-        //productive
-        mpOptions.client_id = process.env.MERCADOPAGO_MARKETPLACE_CLIENT_ID;
-        mpOptions.client_secret =
-            process.env.MERCADOPAGO_MARKETPLACE_CLIENT_SECRET;
-        console.log('Generating MERCADOPAGO PRODUCTIVE link', mpOptions);
-    }
-
-    mp.configure(mpOptions);
-
-    //const accessToken = generateToken();
     const preferenceOptions = {
         external_reference: externalReference,
         items,
