@@ -6,6 +6,11 @@ async function sendPushNotification(message, players, data) {
         Authorization: `Basic ${process.env.ONESIGNAL_REST_API_KEY}`,
     };
 
+    console.log(
+        '::::::::: ONESIGNAL_REST_API_KEY',
+        process.env.ONESIGNAL_REST_API_KEY
+    );
+
     var options = {
         host: 'onesignal.com',
         port: 443,
