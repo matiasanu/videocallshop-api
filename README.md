@@ -14,6 +14,9 @@ Client to loggin as a store user, watch the queue and performs store user action
 ### dev URL
 https://videocallshop-api-dev.herokuapp.com/
 
+### stage URL
+https://videocallshop-api-stage.herokuapp.com/
+
 ## API methods
 
 ###### Common Status Codes

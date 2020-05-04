@@ -1,14 +1,21 @@
 'use strict';
 
-async function sendPushNotification(message, players, data) {
+async function sendPushNotification(
+    message,
+    players,
+    oneSignalAppId,
+    oneSignalRestApiKey,
+    data
+) {
     var headers = {
         'Content-Type': 'application/json; charset=utf-8',
-        Authorization: `Basic ${process.env.ONESIGNAL_REST_API_KEY}`,
+        Authorization: `Basic ${oneSignalRestApiKey}`,
     };
 
     console.log(
         '::::::::: ONESIGNAL_REST_API_KEY',
-        process.env.ONESIGNAL_REST_API_KEY
+        oneSignalAppId,
+        oneSignalRestApiKey
     );
 
     var options = {
@@ -20,7 +27,7 @@ async function sendPushNotification(message, players, data) {
     };
 
     var data = {
-        app_id: process.env.ONESIGNAL_APP_ID,
+        app_id: oneSignalAppId,
         contents: { en: message },
         data,
         include_player_ids: players,

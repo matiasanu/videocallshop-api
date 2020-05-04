@@ -191,6 +191,8 @@ const callClient = async (req, res, next) => {
             pushNotificationHelper.sendPushNotification(
                 'Has sido llamado por la tienda',
                 [callRequest.onesignalPlayerId],
+                process.env.ONESIGNAL_CALL_REQUESTS_APP_ID,
+                process.env.ONESIGNAL_CALL_REQUESTS_REST_API_KEY,
                 { type: CALLED, callRequest, call, jwt }
             );
         }
