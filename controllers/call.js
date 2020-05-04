@@ -184,9 +184,15 @@ const callClient = async (req, res, next) => {
         );
         const jwt = jwtHelper.generateJwt(callRequest);
         if (callRequest.onesignalPlayerId) {
+            console.log(
+                '::::::::: onesignalPlayerId',
+                callRequest.onesignalPlayerId
+            );
             pushNotificationHelper.sendPushNotification(
                 'Has sido llamado por la tienda',
                 [callRequest.onesignalPlayerId],
+                process.env.ONESIGNAL_CALL_REQUESTS_APP_ID,
+                process.env.ONESIGNAL_CALL_REQUESTS_REST_API_KEY,
                 { type: CALLED, callRequest, call, jwt }
             );
         }

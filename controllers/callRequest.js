@@ -78,6 +78,8 @@ const createCallRequest = async (req, res, next) => {
                 pushNotificationHelper.sendPushNotification(
                     'Una nueva llamada ha sido agregada a la cola',
                     [storeUser.onesignalPlayerId],
+                    process.env.ONESIGNAL_STORE_USERS_APP_ID,
+                    process.env.ONESIGNAL_STORE_USERS_REST_API_KEY,
                     callRequestCreated
                 );
             }
