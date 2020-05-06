@@ -198,12 +198,8 @@ router.post(
             .optional()
             .isDecimal(),
         check('paymentOptionId').isInt(),
-        check('province')
-            .optional()
-            .matches(stringsRegex),
-        check('city')
-            .optional()
-            .matches(stringsRegex),
+        check('province').optional(),
+        check('city').optional(),
         check('address').optional(),
         check('items.*.productName'),
         check('items.*.productDescription').optional(),
