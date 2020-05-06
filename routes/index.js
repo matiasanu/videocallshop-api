@@ -22,6 +22,8 @@ const callRequestMidd = require('../middlewares/callRequest');
 const callMidd = require('../middlewares/call');
 const purchaseOrderMidd = require('../middlewares/purchaseOrder');
 
+const stringsRegex = /^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/i;
+
 // hello
 router.get('/', ({ res }) => res.send('videocallshop-api available'));
 
@@ -65,8 +67,8 @@ router.post(
     [
         check('storeId').isInt(),
         check('email').isEmail(),
-        check('name').matches(/^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/i),
-        check('lastName').matches(/^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/i),
+        check('name').matches(stringsRegex),
+        check('lastName').matches(stringsRegex),
     ],
     paramsValidatorMidd.validateParams,
     storeMidd.storeExists,
@@ -198,17 +200,13 @@ router.post(
         check('paymentOptionId').isInt(),
         check('province')
             .optional()
-            .isAscii(),
+            .matches(stringsRegex),
         check('city')
             .optional()
-            .isAscii(),
-        check('address')
-            .optional()
-            .isAscii(),
-        check('items.*.productName').isAscii(),
-        check('items.*.productDescription')
-            .optional()
-            .isAscii(),
+            .matches(stringsRegex),
+        check('address').optional(),
+        check('items.*.productName'),
+        check('items.*.productDescription').optional(),
         check('items.*.unitPrice').isDecimal(),
         check('items.*.quantity').isInt(),
     ],

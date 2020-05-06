@@ -8,12 +8,12 @@ if (process.env.MERCADOPAGO_SANDBOX === 'TRUE') {
     mpOptions.sandbox = true;
     mpOptions.access_token =
         process.env.MERCADOPAGO_MARKETPLACE_SANDBOX_ACCESS_TOKEN;
-    console.log('Generating MERCADOPAGO SANDBOX link', mpOptions);
+    console.log('Setting up MERCADOPAGO SANDBOX', mpOptions);
 } else {
     //productive
     mpOptions.client_id = process.env.MERCADOPAGO_MARKETPLACE_CLIENT_ID;
     mpOptions.client_secret = process.env.MERCADOPAGO_MARKETPLACE_CLIENT_SECRET;
-    console.log('Generating MERCADOPAGO PRODUCTIVE link', mpOptions);
+    console.log('Setting up MERCADOPAGO SANDBOX', mpOptions);
 }
 
 mp.configure(mpOptions);
