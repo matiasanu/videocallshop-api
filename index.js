@@ -62,7 +62,7 @@ app.use(function(err, req, res, next) {
         });
 
         io.use(sharedsession(session)); // Share session with io sockets
-        // io.use(authorizationSocketMidd.checkAuthorization); //ToDo: Undo this
+        io.use(authorizationSocketMidd.checkAuthorization);
 
         const redisCli = await redisHelper.createClient();
         await waitingRoomModel.subscribeQueues(redisCli);
