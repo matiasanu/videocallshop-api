@@ -58,7 +58,6 @@ app.use(function(err, req, res, next) {
         // socket.io
         const io = require('socket.io')(http, {
             path: '/waiting-room-socket',
-            origins: '*',
         });
 
         io.use(sharedsession(session)); // Share session with io sockets
