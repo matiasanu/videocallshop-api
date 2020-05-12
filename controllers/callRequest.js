@@ -87,6 +87,7 @@ const createCallRequest = async (req, res, next) => {
 
         // generate jwt and response
         const jwt = jwtHelper.generateJwt(callRequestCreated);
+        callRequestCreated.token = jwt;
 
         const status = 200;
         res.status(status);
