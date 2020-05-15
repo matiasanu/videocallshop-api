@@ -109,7 +109,7 @@ const cancelCallRequest = async (req, res, next) => {
 
         if (!hasAccess) {
             const err = new Error('Unauthorized.');
-            err.status = 404;
+            err.status = 401;
             return next(err);
         }
 
