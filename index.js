@@ -58,6 +58,17 @@ app.use(function(err, req, res, next) {
         // socket.io
         const io = require('socket.io')(http, {
             path: '/waiting-room-socket',
+            origins: '*:*',
+            handlePreflightRequest: (req, res) => {
+                const headers = {
+                    'Access-Control-Allow-Headers':
+                        'Content-Type, Authorization',
+                    'Access-Control-Allow-Origin': req.headers.origin, //or the specific origin you want to give access to,
+                    'Access-Control-Allow-Credentials': true,
+                };
+                res.writeHead(200, headers);
+                res.end();
+            },
         });
 
         io.use(sharedsession(session)); // Share session with io sockets

@@ -87,6 +87,7 @@ const createCallRequest = async (req, res, next) => {
 
         // generate jwt and response
         const jwt = jwtHelper.generateJwt(callRequestCreated);
+        callRequestCreated.token = jwt;
 
         const status = 200;
         res.status(status);
@@ -108,7 +109,7 @@ const cancelCallRequest = async (req, res, next) => {
 
         if (!hasAccess) {
             const err = new Error('Unauthorized.');
-            err.status = 404;
+            err.status = 401;
             return next(err);
         }
 
