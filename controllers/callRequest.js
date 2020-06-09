@@ -88,6 +88,7 @@ const createCallRequest = async (req, res, next) => {
         // generate jwt and response
         const jwt = jwtHelper.generateJwt(callRequestCreated);
         callRequestCreated.token = jwt;
+        callRequestCreated.apiKey = process.env.TOKBOX_API_KEY;
 
         const status = 200;
         res.status(status);
@@ -255,6 +256,8 @@ const getCallRequest = async (req, res, next) => {
         if (!callRequest) {
             throw new Error('Call request does not exist.');
         }
+
+        callRequest.apiKey = process.env.TOKBOX_API_KEY;
 
         const status = 200;
         res.send({ status, data: callRequest });
