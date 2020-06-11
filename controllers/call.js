@@ -42,6 +42,8 @@ const getCall = async (req, res, next) => {
             delete call.tokboxTokenCallRequest;
         }
 
+        call.tokboxApiKey = process.env.TOKBOX_API_KEY;
+
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
@@ -91,6 +93,8 @@ const getCalls = async (req, res, next) => {
             if (!req.authorization.callRequestToken.thisCallRequest) {
                 delete call.tokboxTokenCallRequest;
             }
+
+            call.tokboxApiKey = process.env.TOKBOX_API_KEY;
         });
 
         const status = 200;
@@ -198,6 +202,8 @@ const callClient = async (req, res, next) => {
         }
 
         // send response
+        call.tokboxApiKey = process.env.TOKBOX_API_KEY;
+
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
