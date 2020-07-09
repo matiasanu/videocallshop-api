@@ -256,6 +256,10 @@ const getCallRequest = async (req, res, next) => {
             throw new Error('Call request does not exist.');
         }
 
+        callRequest.purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
+            callRequestId
+        );
+
         const status = 200;
         res.send({ status, data: callRequest });
     } catch (err) {
