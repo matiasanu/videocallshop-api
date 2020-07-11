@@ -260,6 +260,16 @@ const getCallRequest = async (req, res, next) => {
             callRequestId
         );
 
+        await Promise.all(
+            callRequest.purchaseOrders.map(async purchaseOrder => {
+                purchaseOrder.items = await purchaseOrderModel.getPurchaseOrderItems(
+                    purchaseOrder.purchaseOrderId
+                );
+    
+                return purchaseOrder;
+            })
+        );
+
         const status = 200;
         res.send({ status, data: callRequest });
     } catch (err) {
