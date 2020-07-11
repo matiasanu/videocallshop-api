@@ -11,9 +11,6 @@ const session = expressSession({
         secret: process.env.SESSION_SECRET,
         saveUninitialized: false,
         resave: false,
-        cookie: {
-            magAge: 604800000, //a week
-        },
     }),
     sharedsession = require('express-socket.io-session');
 const bodyParser = require('body-parser');
