@@ -256,6 +256,7 @@ const getCallRequest = async (req, res, next) => {
             throw new Error('Call request does not exist.');
         }
 
+        // get purchase orders
         callRequest.purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
             callRequestId
         );
@@ -265,6 +266,9 @@ const getCallRequest = async (req, res, next) => {
                 purchaseOrder.items = await purchaseOrderModel.getPurchaseOrderItems(
                     purchaseOrder.purchaseOrderId
                 );
+
+                purchaseOrder.paymentOption = await paymentOptionModel.getPaymentOption(purchaseOrder.paymentOptionId);
+                purchaseOrder.shippingOption = await shippingOptionModel.getShippingOption(purchaseOrder.shippingOptionId);
     
                 return purchaseOrder;
             })
