@@ -9,6 +9,7 @@ const expressSession = require('express-session');
 const session = expressSession({
         store: new (require('connect-pg-simple')(expressSession))(),
         secret: process.env.SESSION_SECRET,
+        cookie: {expires: new Date(253402300000000)},
         saveUninitialized: false,
         resave: false,
     }),
