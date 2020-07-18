@@ -37,7 +37,7 @@ const sendPurchaseInstructions = async (
         </li>`;
     }
 
-    itemsHtml += `<p style="font-size: 14px; line-height: 16px;">Total: $${total}</p>`;
+    itemsHtml += `<p style="font-size: 14px; line-height: 16px;">Total: $${total} ${purchaseOrder.shippingPrice ? ` + ${purchaseOrder.shippingPrice} (envío) = $${total + purchaseOrder.shippingPrice}` : ''}</p>`;
 
     // following steps
     let followingSteps = '';
