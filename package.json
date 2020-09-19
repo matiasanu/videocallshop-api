@@ -14,7 +14,7 @@
   "author": "Gary <alemmartin@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.0.0",
     "bluebird": "^3.5.4",
     "body-parser": "^1.19.0",
     "connect-pg-simple": "^6.0.1",
