@@ -1,5 +1,7 @@
 const storeModel = require('../models/store');
 
+const mercadopagoHelper = require('../helpers/mercadopago');
+
 const getStore = async (req, res, next) => {
     try {
         const { storeId } = req.params;
@@ -33,4 +35,25 @@ const getStores = async (req, res, next) => {
     }
 };
 
-module.exports = { getStore, getStores };
+const getAuthorizationUrl = async (req, res, next) => {
+    try {
+        const { storeId } = req.params;
+
+        const store = await storeModel.getStore(storeId);
+
+        let url = mercadopagoHelper.getAuthorizationUrl(
+            store,
+            req.protocol,
+            req.headers.host
+        );
+
+        console.log('--- URL ---', url);
+
+        res.redirect(url);
+    } catch (err) {
+        err.status = 500;
+        return next(err);
+    }
+};
+
+module.exports = { getStore, getStores, getAuthorizationUrl };

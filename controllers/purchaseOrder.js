@@ -1,5 +1,10 @@
+// models
 const callRequestModel = require('../models/callRequest');
 const purchaseOrderModel = require('../models/purchaseOrder');
+const storeModel = require('../models/store');
+
+//helpers
+const mercadopagoHelper = require('../helpers/mercadopago');
 
 const CALLED = 'CALLED';
 
@@ -33,7 +38,7 @@ const createPurchaseOrder = async (req, res, next) => {
 
     // create purchase order
     try {
-        const {
+        let {
             shippingOptionId,
             shippingPrice,
             paymentOptionId,
@@ -43,6 +48,50 @@ const createPurchaseOrder = async (req, res, next) => {
             items,
         } = req.body;
 
+        // if "Retiro en la tienda"
+        if (parseInt(shippingOptionId) === 1) {
+            shippingPrice = 0;
+        }
+
+        // create mercadopago preference
+        const mercadopagoItems = [];
+        let item;
+        for (item of items) {
+            mercadopagoItems.push({
+                title: item.productName,
+                description: item.productDescription,
+                quantity: parseInt(item.quantity),
+                currency_id: 'ARS',
+                unit_price: parseFloat(item.unitPrice),
+            });
+        }
+
+        // Costo de envio
+        if (shippingPrice) {
+            mercadopagoItems.push({
+                title: 'Costo de envio',
+                description: 'Costo de envio',
+                quantity: 1,
+                currency_id: 'ARS',
+                unit_price: shippingPrice,
+            });
+        }
+
+        const storeId = parseInt(req.params.storeId);
+        const store = await storeModel.getStore(storeId);
+        const externalReference = callRequest.callRequestId.toString();
+
+        // payment through mercadopago
+        let mercadopagoPreference = null;
+        if (paymentOptionId === 2) {
+            mercadopagoPreference = await mercadopagoHelper.createPreference(
+                store.mercadopagoAccessToken,
+                mercadopagoItems,
+                externalReference
+            );
+        }
+
+        // create purchase order
         const purchaseOrderId = await purchaseOrderModel.createPurchaseOrder(
             callRequestId,
             shippingOptionId,
@@ -50,7 +99,8 @@ const createPurchaseOrder = async (req, res, next) => {
             paymentOptionId,
             province,
             city,
-            address
+            address,
+            mercadopagoPreference
         );
 
         const itemIds = await purchaseOrderModel.addItems(
@@ -113,7 +163,9 @@ const deletePurchaseOrder = async (req, res, next) => {
 const getPurchaseOrders = async (req, res, next) => {
     // authorization
     try {
-        const hasAccess = req.authorization.storeUser.thisStore;
+        const hasAccess =
+            req.authorization.storeUser.thisStore ||
+            req.authorization.callRequestToken.thisStore;
 
         if (!hasAccess) {
             throw new Error('Unauthorized.');

@@ -11,8 +11,30 @@ Client to enter in a waiting room as a client.
 Client to loggin as a store user, watch the queue and performs store user actions.
 
 ## Utils
-### dev URL
+### CLIENT WEBAPP dev
+https://videocallshop-webapp-dev.herokuapp.com/1/create-call-request
+
+### CLIENT WEBAPP prod
+https://videocallshop-webapp-prod.herokuapp.com/1/create-call-request
+
+### CLIENT TOOL dev
+https://videocallshop-api-dev.herokuapp.com/call-request.html
+
+### CLIENT TOOL prod
+https://videocallshop-api-prod.herokuapp.com/call-request.html
+
+### STORE TOOL dev
+https://videocallshop-api-dev.herokuapp.com/store-user.html
+
+### STORE TOOL prod
+https://videocallshop-api-prod.herokuapp.com/store-user.html
+
+
+### API dev
 https://videocallshop-api-dev.herokuapp.com/
+
+### API prod
+https://videocallshop-api-prod.herokuapp.com/
 
 ## API methods
 
@@ -36,7 +58,8 @@ Authenticate a store user.
 ```
 {
     "email": "maurocg89@gmail.com",
-    "password": "sonserios10"
+    "password": "sonserios10",
+    "onesignalPlayerId": "6392d91a-b206-4b7b-a620-cd68e32c3a76"
 }
  ```
 
@@ -164,6 +187,9 @@ Get the shipping options.
 ### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders`
 Get the purchase orders of a call request.
 
+###### Auth
+storeUser.thisStore || callRequestToken.thisStore
+
 ### `DELETE` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
 Delete a purchase orders of a call request.
 
@@ -187,12 +213,12 @@ Attach a purchase order in a call request.
             "productName": "Tela negra",
             "productDescription": "Retazo de tela negra",
             "unitPrice": 291.2,
-            "quantity": 10.5
+            "quantity": 10
         },
         {
             "productName": "Cinta metrica",
             "unitPrice": 230,
-            "quantity": 12.5
+            "quantity": 12
         }
     ]
 }
@@ -200,3 +226,15 @@ Attach a purchase order in a call request.
 
 ###### Auth
 storeUser.thisStore
+
+### `GET` - `/stores/:storeId/mercadopago-authorization-url`
+Create a link to associate the store with Videocallshop Marketplace (Mercadopago).
+
+###### Auth
+public
+
+### `GET` - `/mercadopago/store-authorization-code`
+Mercadopago redirect_uri. Stores authorization code and creates an access token for the store.
+
+###### Auth
+public

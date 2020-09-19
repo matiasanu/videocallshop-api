@@ -42,6 +42,8 @@ const getCall = async (req, res, next) => {
             delete call.tokboxTokenCallRequest;
         }
 
+        call.tokboxApiKey = process.env.TOKBOX_API_KEY;
+
         const status = 200;
         res.status(status);
         res.send({ status, data: call });
@@ -91,6 +93,8 @@ const getCalls = async (req, res, next) => {
             if (!req.authorization.callRequestToken.thisCallRequest) {
                 delete call.tokboxTokenCallRequest;
             }
+
+            call.tokboxApiKey = process.env.TOKBOX_API_KEY;
         });
 
         const status = 200;
@@ -184,14 +188,22 @@ const callClient = async (req, res, next) => {
         );
         const jwt = jwtHelper.generateJwt(callRequest);
         if (callRequest.onesignalPlayerId) {
+            console.log(
+                '::::::::: onesignalPlayerId',
+                callRequest.onesignalPlayerId
+            );
             pushNotificationHelper.sendPushNotification(
                 'Has sido llamado por la tienda',
                 [callRequest.onesignalPlayerId],
+                process.env.ONESIGNAL_CALL_REQUESTS_APP_ID,
+                process.env.ONESIGNAL_CALL_REQUESTS_REST_API_KEY,
                 { type: CALLED, callRequest, call, jwt }
             );
         }
 
         // send response
+        call.tokboxApiKey = process.env.TOKBOX_API_KEY;
+
         const status = 200;
         res.status(status);
         res.send({ status, data: call });

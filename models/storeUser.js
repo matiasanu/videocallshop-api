@@ -13,13 +13,34 @@ const getUserByEmail = async email => {
     }
 };
 
-const updateLastLoginByEmail = async email => {
+const getUsersByStoreId = async storeId => {
+    try {
+        const result = await pool.query(
+            `SELECT * FROM store_users u WHERE u.store_id='${storeId}';`
+        );
+
+        return result.rows;
+    } catch (err) {
+        console.log('ERROR query getUserByEmail');
+        throw new Error(err.message);
+    }
+};
+
+const updateLastLoginByEmail = async (email, onesignalPlayerId) => {
     try {
         const now = new Date().toISOString();
 
-        const result = await pool.query(
-            `UPDATE store_users SET last_login='${now}' WHERE email='${email}';`
-        );
+        let query = `UPDATE store_users SET last_login='${now}'`;
+
+        if (onesignalPlayerId) {
+            query += `, onesignal_player_id='${onesignalPlayerId}'`;
+        } else {
+            query += `, onesignal_player_id=NULL`;
+        }
+
+        query += ` WHERE email='${email}'`;
+
+        const result = await pool.query(query);
 
         return result.rowCount;
     } catch (err) {
@@ -30,5 +51,6 @@ const updateLastLoginByEmail = async email => {
 
 module.exports = {
     getUserByEmail,
+    getUsersByStoreId,
     updateLastLoginByEmail,
 };

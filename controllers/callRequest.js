@@ -1,12 +1,14 @@
 //helpers
 const jwtHelper = require('../helpers/jwt');
 const emailHelper = require('../helpers/email');
+const pushNotificationHelper = require('../helpers/pushNotification');
 
 // models
 const waitingRoomModel = require('../models/waitingRoom');
 const callRequestModel = require('../models/callRequest');
 const purchaseOrderModel = require('../models/purchaseOrder');
 const storeModel = require('../models/store');
+const storeUserModel = require('../models/storeUser');
 const paymentOptionModel = require('../models/paymentOption');
 const shippingOptionModel = require('../models/shippingOption');
 
@@ -69,8 +71,23 @@ const createCallRequest = async (req, res, next) => {
             callRequestId
         );
 
+        // send push notifications to store users
+        const storeUsers = await storeUserModel.getUsersByStoreId(storeId);
+        for (storeUser of storeUsers) {
+            if (storeUser.onesignalPlayerId) {
+                pushNotificationHelper.sendPushNotification(
+                    'Una nueva llamada ha sido agregada a la cola',
+                    [storeUser.onesignalPlayerId],
+                    process.env.ONESIGNAL_STORE_USERS_APP_ID,
+                    process.env.ONESIGNAL_STORE_USERS_REST_API_KEY,
+                    callRequestCreated
+                );
+            }
+        }
+
         // generate jwt and response
         const jwt = jwtHelper.generateJwt(callRequestCreated);
+        callRequestCreated.token = jwt;
 
         const status = 200;
         res.status(status);
@@ -92,7 +109,7 @@ const cancelCallRequest = async (req, res, next) => {
 
         if (!hasAccess) {
             const err = new Error('Unauthorized.');
-            err.status = 404;
+            err.status = 401;
             return next(err);
         }
 
@@ -168,7 +185,7 @@ const finishCallRequest = async (req, res, next) => {
         // set finished state
         await callRequestModel.setState(callRequestId, FINISHED);
 
-        // send email with instructions if have purchase orders
+        // if have purchase orders: send email with instructions
         const purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
             callRequest.callRequestId
         );
@@ -238,6 +255,24 @@ const getCallRequest = async (req, res, next) => {
         if (!callRequest) {
             throw new Error('Call request does not exist.');
         }
+
+        // get purchase orders
+        callRequest.purchaseOrders = await purchaseOrderModel.getPurchaseOrdersByCallRequestId(
+            callRequestId
+        );
+
+        await Promise.all(
+            callRequest.purchaseOrders.map(async purchaseOrder => {
+                purchaseOrder.items = await purchaseOrderModel.getPurchaseOrderItems(
+                    purchaseOrder.purchaseOrderId
+                );
+
+                purchaseOrder.paymentOption = await paymentOptionModel.getPaymentOption(purchaseOrder.paymentOptionId);
+                purchaseOrder.shippingOption = await shippingOptionModel.getShippingOption(purchaseOrder.shippingOptionId);
+    
+                return purchaseOrder;
+            })
+        );
 
         const status = 200;
         res.send({ status, data: callRequest });

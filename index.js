@@ -1,6 +1,7 @@
 // third libraries
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 
@@ -8,11 +9,9 @@ const expressSession = require('express-session');
 const session = expressSession({
         store: new (require('connect-pg-simple')(expressSession))(),
         secret: process.env.SESSION_SECRET,
+        cookie: {expires: new Date(253402300000000)},
         saveUninitialized: false,
         resave: false,
-        cookie: {
-            magAge: 604800000, //a week
-        },
     }),
     sharedsession = require('express-socket.io-session');
 const bodyParser = require('body-parser');
@@ -28,11 +27,13 @@ const routes = require('./routes/index');
 const app = express();
 const http = require('http').Server(app);
 
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // parse application/json
 app.use(bodyParser.json());
 app.use(logger('dev'));
 app.use(express.static('public'));
+app.use(express.static('resources'));
 app.use(cookieParser());
 app.use(session);
 app.use('/', routes);
@@ -55,6 +56,17 @@ app.use(function(err, req, res, next) {
         // socket.io
         const io = require('socket.io')(http, {
             path: '/waiting-room-socket',
+            origins: '*:*',
+            handlePreflightRequest: (req, res) => {
+                const headers = {
+                    'Access-Control-Allow-Headers':
+                        'Content-Type, Authorization',
+                    'Access-Control-Allow-Origin': req.headers.origin, //or the specific origin you want to give access to,
+                    'Access-Control-Allow-Credentials': true,
+                };
+                res.writeHead(200, headers);
+                res.end();
+            },
         });
 
         io.use(sharedsession(session)); // Share session with io sockets
