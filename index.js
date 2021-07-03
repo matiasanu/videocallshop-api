@@ -28,9 +28,10 @@ const app = express();
 const http = require('http').Server(app);
 
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
-app.use(bodyParser.json()); // parse application/json
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: true
+}));
 app.use(logger('dev'));
 app.use(express.static('public'));
 app.use(express.static('resources'));
