@@ -5,6 +5,8 @@ const promise = require('bluebird');
 
 const REDIS_URL = process.env.REDIS_URL;
 
+console.log(':::: REDIS_URL', REDIS_URL);
+
 promise.promisifyAll(redis.RedisClient.prototype);
 promise.promisifyAll(redis.Multi.prototype);
 

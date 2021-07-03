@@ -12,6 +12,7 @@ let redisCli = null;
 const getWaitingRooms = async () => {
     // assume we have one-to-one stores and waiting rooms relationship
     const stores = await storeModel.getStores();
+    console.log(':::::: stores', stores);
     const waitingRooms = stores.map(store => {
         return {
             waitingRoomId: `waitingRoom${store.storeId}`,
