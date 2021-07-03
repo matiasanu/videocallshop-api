@@ -37,10 +37,12 @@ const getWaitingRoomByStoreId = async storeId => {
 };
 
 const getQueue = async waitingRoomId => {
+    console.log(':::::::: getQueue START ');
     const waitingRoom = await redisCli
         .multi()
         .lrange(waitingRoomId, 0, -1)
         .execAsync();
+        console.log(':::::::: getQueue RESPONSE ', waitingRoom);
 
     return waitingRoom[0];
 };
