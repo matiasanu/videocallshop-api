@@ -13,7 +13,7 @@ const getWaitingRooms = async () => {
     // assume we have one-to-one stores and waiting rooms relationship
     console.log(':::::: getWaitingrooms');
     const stores = await storeModel.getStores();
-    console.log(':::::: stores', stores);
+    console.log(':::::: stores length', stores.length);
     const waitingRooms = stores.map(store => {
         return {
             waitingRoomId: `waitingRoom${store.storeId}`,
