@@ -7,7 +7,7 @@ config = {
     ssl: {
         rejectUnauthorized: false
     },
-    connectionString: `${process.env.DATABASE_URL}?ssl=true`,
+    connectionString: `${process.env.DATABASE_URL}`,
 };
 const pool = new pg.Pool(config);
 
