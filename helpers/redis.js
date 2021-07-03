@@ -19,6 +19,7 @@ const createClient = () => {
         });
 
         connector.on('connect', () => {
+            console.log('**************** CONNECTED!!!!!')
             resolve(connector);
         });
     }).catch(err => {
