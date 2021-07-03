@@ -20,6 +20,7 @@ const FINISHED = 'FINISHED';
 
 const createCallRequest = async (req, res, next) => {
     try {
+        console.log(':::::: createCallRequest')
         const { email, name, lastName, onesignalPlayerId } = req.body;
         const storeId = parseInt(req.params.storeId);
 
@@ -67,11 +68,13 @@ const createCallRequest = async (req, res, next) => {
         await callRequestModel.setState(callRequestId, IN_QUEUE);
 
         // get created call request
+        console.log(':::: get created call request ::::');
         const callRequestCreated = await callRequestModel.getCallRequest(
             callRequestId
         );
 
         // send push notifications to store users
+        console.log(':::: send push notifications to store users ::::');
         const storeUsers = await storeUserModel.getUsersByStoreId(storeId);
         for (storeUser of storeUsers) {
             if (storeUser.onesignalPlayerId) {
@@ -86,6 +89,7 @@ const createCallRequest = async (req, res, next) => {
         }
 
         // generate jwt and response
+        console.log(':::: generate jwt and response ::::', err);
         const jwt = jwtHelper.generateJwt(callRequestCreated);
         callRequestCreated.token = jwt;
 
@@ -94,6 +98,7 @@ const createCallRequest = async (req, res, next) => {
         res.set('Authorization', 'Bearer ' + jwt);
         res.send({ status, data: callRequestCreated });
     } catch (err) {
+        console.log(':::: ERROR ::::', err);
         err.status = 500;
         return next(err);
     }
