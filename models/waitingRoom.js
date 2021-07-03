@@ -37,7 +37,7 @@ const getWaitingRoomByStoreId = async storeId => {
 };
 
 const getQueue = async waitingRoomId => {
-    console.log(':::::::: getQueue START ');
+    console.log(':::::::: getQueue START', waitingRoomId);
     const waitingRoom = await redisCli
         .multi()
         .lrange(waitingRoomId, 0, -1)
