@@ -11,22 +11,22 @@ Client to enter in a waiting room as a client.
 Client to loggin as a store user, watch the queue and performs store user actions.
 
 ## Utils
-### CLIENT WEBAPP dev
-https://videocallshop-webapp-dev.herokuapp.com/1/create-call-request
+### WEBAPP CLIENTE dev
+https://videocallshop-webapp-dev.herokuapp.com
 
-### CLIENT WEBAPP prod
-https://videocallshop-webapp-prod.herokuapp.com/1/create-call-request
+### WEBAPP CLIENTE prod
+https://videocallshop-webapp-prod.herokuapp.com
 
-### CLIENT TOOL dev
+### TOOL CLIENTE dev
 https://videocallshop-api-dev.herokuapp.com/call-request.html
 
-### CLIENT TOOL prod
+### TOOL CLIENTE prod
 https://videocallshop-api-prod.herokuapp.com/call-request.html
 
-### STORE TOOL dev
+### TOOL TIENDA dev
 https://videocallshop-api-dev.herokuapp.com/store-user.html
 
-### STORE TOOL prod
+### TOOL TIENDA prod
 https://videocallshop-api-prod.herokuapp.com/store-user.html
 
 
