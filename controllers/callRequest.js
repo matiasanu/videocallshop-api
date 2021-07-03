@@ -25,9 +25,11 @@ const createCallRequest = async (req, res, next) => {
         const storeId = parseInt(req.params.storeId);
 
         // check if another email is not into a queue
+        console.log(':::::: check if another email is not into a queue')
         const inQueue = await waitingRoomModel.findCallRequestInQueueByEmail(
             email
         );
+        console.log(':::::: in queue', inQueue)
 
         if (inQueue) {
             const err = new Error('Email already in use.');
