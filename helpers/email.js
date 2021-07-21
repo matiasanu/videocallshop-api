@@ -10,12 +10,12 @@ const sendPurchaseInstructions = async (
     store
 ) => {
     let transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
+        host: process.env.MAILGUN_SMTP_SERVER,
+        port: process.env.MAILGUN_SMTP_PORT,
         secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
         auth: {
-            user: process.env.EMAIL_AUTH_USER,
-            pass: process.env.EMAIL_AUTH_PASS,
+            user: process.env.MAILGUN_SMTP_LOGIN,
+            pass: process.env.MAILGUN_SMTP_PASSWORD,
         },
         tls: {
             rejectUnauthorized: false,

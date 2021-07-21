@@ -184,19 +184,19 @@ Get the payment options.
 ### `GET` - `/shipping-options`
 Get the shipping options.
 
-### `GET` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders`
+### `GET` - `/stores/:storeId/call-requests/:callRequestId/purchase-orders`
 Get the purchase orders of a call request.
 
 ###### Auth
 storeUser.thisStore || callRequestToken.thisStore
 
-### `DELETE` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders/:purchaseOrderId`
+### `DELETE` - `/stores/:storeId/call-requests/:callRequestId/purchase-orders/:purchaseOrderId`
 Delete a purchase orders of a call request.
 
 ###### Auth
 storeUser.thisStore
 
-### `POST` - `/stores/:storeId/calls-requests/:callRequestId/purchase-orders`
+### `POST` - `/stores/:storeId/call-requests/:callRequestId/purchase-orders`
 Attach a purchase order in a call request.
 
 ###### Body example (`Content-Type: application/json`)
