@@ -291,7 +291,7 @@ const sendPurchaseInstructions = async (
     try {
         let info = await transporter.sendMail({
             from:
-                '"Matías Nuñez de Video Call Shop 👻" <info@videocallshop.com>', // sender address
+                '"Matías Nuñez de Video Call Shop 👻" <brad@sandboxea52042004524c7d8406a461271d7914.mailgun.org>', // sender address
             bcc: store.email,
             to: callRequest.email, // list of receivers
             subject: 'Gracias por tu compra en Video Call Shop ✔', // Subject line
