@@ -10,7 +10,7 @@ const sendPurchaseInstructions = async (
     store
 ) => {
     let transporter = nodemailer.createTransport({
-        host: process.env.MAILGUN_SMTP_SERVER,
+        host: process.env.MAILGUN_DOMAIN,
         port: process.env.MAILGUN_SMTP_PORT,
         secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
         auth: {
